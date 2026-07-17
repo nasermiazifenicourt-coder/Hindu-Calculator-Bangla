@@ -988,19 +988,26 @@ fun isNetworkAvailable(context: Context): Boolean {
 fun SplashScreen() {
     val context = LocalContext.current
     val imageBitmap = remember {
-        try {
-            context.assets.open("mypro.jpeg").use { inputStream ->
-                BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
-            }
-        } catch (e: Exception) {
+        val filenames = listOf(
+            "mypro.jpeg", "mypro.jpg", "mypro.png", "mypro.webp",
+            "splash.jpeg", "splash.jpg", "splash.png", "splash.webp",
+            "splash_image.jpeg", "splash_image.jpg", "splash_image.png", "splash_image.webp"
+        )
+        var bitmap: androidx.compose.ui.graphics.ImageBitmap? = null
+        for (filename in filenames) {
             try {
-                context.assets.open("mypro.jpg").use { inputStream ->
-                    BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
+                context.assets.open(filename).use { inputStream ->
+                    val dec = BitmapFactory.decodeStream(inputStream)
+                    if (dec != null) {
+                        bitmap = dec.asImageBitmap()
+                        break
+                    }
                 }
-            } catch (e2: Exception) {
-                null
+            } catch (e: Exception) {
+                // Try next file
             }
         }
+        bitmap
     }
 
     Box(
