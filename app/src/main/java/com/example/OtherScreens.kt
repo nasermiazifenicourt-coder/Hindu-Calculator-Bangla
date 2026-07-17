@@ -10,10 +10,20 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import android.net.Uri
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -499,27 +509,80 @@ fun DisclaimerScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.Black)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Disclaimer",
-            fontSize = 22.sp,
+            text = "দাবিত্যাগ / Disclaimer",
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFFE65100),
-            modifier = Modifier.padding(bottom = 16.dp)
+            color = Color(0xFFFF9800),
+            modifier = Modifier.padding(bottom = 8.dp)
         )
 
+        // Bengali Disclaimer Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF1A0C00)), // Subtle amber-tinted dark background
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xFFE65100).copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(18.dp)
+            ) {
                 Text(
-                    text = "দাবিত্যাগ (Disclaimer): এই ক্যালকুলেটরের ফলাফল শুধুমাত্র সাধারণ তথ্যের জন্য তৈরি করা হয়েছে এবং এটি কোনো প্রকার চূড়ান্ত আইনি পরামর্শ নয়। পারিবারিক বিরোধ সমাধান বা দলিল রেজিস্ট্রি করার পূর্বে অবশ্যই কোনো প্রত্যয়িত আইনজীবী অথবা হিন্দু আইন বিশেষজ্ঞের সাথে পরামর্শ করা বাঞ্ছনীয়। গাণিতিক হিসাব বা তথ্যের কোনো অসঙ্গতির জন্য কতৃপক্ষ দায়ী থাকবে না।",
+                    text = "দাবিত্যাগ (Disclaimer)",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF9800),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = "এই ক্যালকুলেটরের ফলাফল শুধুমাত্র সাধারণ তথ্যের জন্য তৈরি করা হয়েছে এবং এটি কোনো প্রকার চূড়ান্ত আইনি পরামর্শ নয়। পারিবারিক বিরোধ সমাধান বা দলিল রেজিস্ট্রি করার পূর্বে অবশ্যই কোনো প্রত্যয়িত আইনজীবী অথবা হিন্দু আইন বিশেষজ্ঞের সাথে পরামর্শ করা বাঞ্ছনীয়। গাণিতিক হিসাব বা তথ্যের কোনো অসঙ্গতির জন্য কতৃপক্ষ দায়ী থাকবে না।",
                     fontSize = 14.sp,
                     lineHeight = 22.sp,
-                    color = MaterialTheme.colorScheme.onErrorContainer
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFFECEFF1)
+                )
+            }
+        }
+
+        // English Disclaimer Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xFF2C2C2C),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(18.dp)
+            ) {
+                Text(
+                    text = "Legal Disclaimer",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF9800),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = "The calculations and results provided by this calculator are for general informational purposes only and do not constitute formal legal advice. Before resolving family disputes, executing partition deeds, or registering property, it is strongly advised to consult with a certified advocate or Hindu law specialist. The application developers and authorities shall not be held liable for any mathematical inaccuracies, discrepancies, or consequences arising from the use of this information.",
+                    fontSize = 14.sp,
+                    lineHeight = 22.sp,
+                    color = Color(0xFFECEFF1)
                 )
             }
         }
@@ -528,6 +591,9 @@ fun DisclaimerScreen() {
 
 @Composable
 fun DeveloperScreen() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -551,7 +617,11 @@ fun DeveloperScreen() {
         val isPressed by interactionSource.collectIsPressedAsState()
         val isInteracted = isHovered || isPressed
 
-        val scale by animateFloatAsState(targetValue = if (isInteracted) 1.05f else 1.0f, label = "cardScale")
+        var isPhotoZoomed by remember { mutableStateOf(false) }
+        val scale by animateFloatAsState(
+            targetValue = if (isPhotoZoomed) 1.22f else (if (isInteracted) 1.05f else 1.0f),
+            label = "cardScale"
+        )
 
         Card(
             modifier = Modifier
@@ -563,7 +633,14 @@ fun DeveloperScreen() {
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
-                    onClick = {}
+                    onClick = {
+                        scope.launch {
+                            isPhotoZoomed = true
+                            delay(250)
+                            openFacebookLink(context, "https://facebook.com/numiazi")
+                            isPhotoZoomed = false
+                        }
+                    }
                 ),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
             elevation = CardDefaults.cardElevation(defaultElevation = if (isInteracted) 12.dp else 4.dp),
@@ -575,7 +652,7 @@ fun DeveloperScreen() {
                     .padding(24.dp)
                     .border(
                         width = 1.dp,
-                        color = if (isInteracted) Color(0xFFFF9800) else Color(0xFF2C2C2C),
+                        color = if (isPhotoZoomed || isInteracted) Color(0xFFFF9800) else Color(0xFF2C2C2C),
                         shape = RoundedCornerShape(24.dp)
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -588,7 +665,7 @@ fun DeveloperScreen() {
                         .border(
                             width = 4.dp,
                             brush = Brush.linearGradient(
-                                colors = if (isInteracted) {
+                                colors = if (isPhotoZoomed || isInteracted) {
                                     listOf(Color(0xFFFFD54F), Color(0xFFFF3D00))
                                 } else {
                                     listOf(Color(0xFFFF9800), Color(0xFFE65100))
@@ -625,10 +702,19 @@ fun DeveloperScreen() {
                     color = Color(0xFFFFB74D),
                     textAlign = TextAlign.Center
                 )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "ছবির উপরে ক্লিক করে আমার সাথে ফেসবুকে যোগাযোগ করুন।",
+                    fontSize = 12.sp,
+                    color = Color.LightGray,
+                    textAlign = TextAlign.Center
+                )
             }
         }
 
-        // Contact Info Section Card
+        // Contact & Social Info Section Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
@@ -673,6 +759,40 @@ fun DeveloperScreen() {
                         .background(Color(0xFF2C2C2C))
                 )
 
+                ClickableDeveloperInfoRow(
+                    icon = Icons.Default.Share,
+                    label = "Facebook Page (আমাদের ফেসবুক পেইজ)",
+                    value = "https://facebook.com/advmiazi",
+                    iconColor = Color(0xFF2196F3),
+                    onClick = {
+                        openFacebookLink(context, "https://facebook.com/advmiazi")
+                    }
+                )
+
+                Spacer(
+                    modifier = Modifier
+                        .height(1.dp)
+                        .fillMaxWidth()
+                        .background(Color(0xFF2C2C2C))
+                )
+
+                ClickableDeveloperInfoRow(
+                    icon = Icons.Default.PlayArrow,
+                    label = "Play Store ID (আমাদের সকল অ্যাপস)",
+                    value = "Play Store Developer Profile",
+                    iconColor = Color(0xFF00E676),
+                    onClick = {
+                        openPlayStoreDeveloperLink(context, "https://play.google.com/store/apps/dev?id=4698126341534001801")
+                    }
+                )
+
+                Spacer(
+                    modifier = Modifier
+                        .height(1.dp)
+                        .fillMaxWidth()
+                        .background(Color(0xFF2C2C2C))
+                )
+
                 DeveloperInfoRow(
                     icon = Icons.Default.LocationOn,
                     label = "Address",
@@ -680,6 +800,89 @@ fun DeveloperScreen() {
                     iconColor = Color(0xFFF44336)
                 )
             }
+        }
+    }
+}
+
+private fun openFacebookLink(context: android.content.Context, url: String) {
+    try {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=$url"))
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (ex: Exception) {
+            // Ignored
+        }
+    }
+}
+
+private fun openPlayStoreDeveloperLink(context: android.content.Context, url: String) {
+    try {
+        val devId = url.substringAfter("id=").trim()
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://dev?id=$devId"))
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        } catch (ex: Exception) {
+            // Ignored
+        }
+    }
+}
+
+@Composable
+fun ClickableDeveloperInfoRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    iconColor: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(iconColor.copy(alpha = 0.15f), RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = iconColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                color = Color(0xFFB0BEC5),
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = value,
+                fontSize = 15.sp,
+                color = Color(0xFFFFB74D),
+                fontWeight = FontWeight.Bold,
+                lineHeight = 20.sp
+            )
         }
     }
 }

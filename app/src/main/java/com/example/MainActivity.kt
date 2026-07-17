@@ -575,8 +575,8 @@ fun MainScreen(
                 }
             },
         ) { innerPadding ->
-            var isAdLoaded by remember { mutableStateOf(false) }
-            val bannerHeight = if (isAdLoaded) 56.dp else 0.dp
+            var isAdLoadedState by remember { mutableStateOf<Boolean?>(null) } // null = loading, true = loaded, false = failed
+            val bannerHeight = if (isAdLoadedState != false) 56.dp else 0.dp
 
             Column(
                 modifier = Modifier
@@ -595,11 +595,11 @@ fun MainScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        AdMobBannerView(bannerAdId = bannerAdId, onAdLoaded = { isAdLoaded = it })
+                        AdMobBannerView(bannerAdId = bannerAdId, onAdLoaded = { isAdLoadedState = it })
                     }
                 }
 
-                if (isAdLoaded) {
+                if (isAdLoadedState == true) {
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant,
                         thickness = 1.dp
@@ -1037,45 +1037,24 @@ fun isNetworkAvailable(context: Context): Boolean {
 fun SplashScreen() {
     val context = LocalContext.current
     val imageBitmap = remember {
-        val filenames = listOf(
-            "img_splash.jpeg",
-            "mypro.jpeg", "mypro.jpg", "mypro.png", "mypro.webp",
-            "splash.jpeg", "splash.jpg", "splash.png", "splash.webp",
-            "splash_image.jpeg", "splash_image.jpg", "splash_image.png", "splash_image.webp"
-        )
-        var bitmap: androidx.compose.ui.graphics.ImageBitmap? = null
-        for (filename in filenames) {
-            try {
-                context.assets.open(filename).use { inputStream ->
-                    val dec = BitmapFactory.decodeStream(inputStream)
-                    if (dec != null) {
-                        bitmap = dec.asImageBitmap()
-                        break
-                    }
-                }
-            } catch (e: Exception) {
-                // Try next file
+        try {
+            context.assets.open("img_splash.png").use { inputStream ->
+                BitmapFactory.decodeStream(inputStream)?.asImageBitmap()
             }
+        } catch (e: Exception) {
+            null
         }
-        bitmap
     }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(ComposeColor.Black), // Premium black background
         contentAlignment = Alignment.Center
     ) {
         if (imageBitmap != null) {
             Image(
                 bitmap = imageBitmap,
-                contentDescription = "Splash Screen Image",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.img_splash),
                 contentDescription = "Splash Screen Image",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit
