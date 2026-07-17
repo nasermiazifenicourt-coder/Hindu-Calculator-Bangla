@@ -82,51 +82,51 @@
         android:fillColor="#E65100"
         android:pathData="M30,62 h11 v3 h-11 z" />
 
-    <!-- Yellow Bengali text "হিন্দু" at the bottom curved dark section -->
+    <!-- Yellow Bengali text "হিন্দু" at the bottom curved dark section (shifted up into safe zone and made bolder) -->
     <!-- 'ি' (i-car) -->
     <path
-        android:strokeColor="#FFEB3B"
-        android:strokeWidth="2"
+        android:strokeColor="#FFEA00"
+        android:strokeWidth="3"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M35,101 L35,88 A6,6 0 0,1 45,84" />
+        android:pathData="M35,89 L35,76 A6,6 0 0,1 45,72" />
 
     <!-- 'হ' (ha) -->
     <path
-        android:strokeColor="#FFEB3B"
-        android:strokeWidth="2"
+        android:strokeColor="#FFEA00"
+        android:strokeWidth="3"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M38,84 L52,84 M45,84 C42,88 38,89 40,92 C42,94 48,93 48,96 C48,99 43,101 40,101" />
+        android:pathData="M38,72 L52,72 M45,72 C42,76 38,77 40,80 C42,82 48,81 48,84 C48,87 43,89 40,89" />
 
     <!-- 'ন্দু' (ndu conjunct) -->
     <!-- Matra -->
     <path
-        android:strokeColor="#FFEB3B"
-        android:strokeWidth="2"
+        android:strokeColor="#FFEA00"
+        android:strokeWidth="3"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M56,84 L76,84" />
+        android:pathData="M56,72 L76,72" />
     <!-- 'ন' loop and joint to 'দ' -->
     <path
-        android:strokeColor="#FFEB3B"
-        android:strokeWidth="2"
+        android:strokeColor="#FFEA00"
+        android:strokeWidth="3"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M59,84 L59,91 A2,2 0 1,1 57,93 L67,93" />
+        android:pathData="M59,72 L59,79 A2,2 0 1,1 57,81 L67,81" />
     <!-- 'দ' body -->
     <path
-        android:strokeColor="#FFEB3B"
-        android:strokeWidth="2"
+        android:strokeColor="#FFEA00"
+        android:strokeWidth="3"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M67,84 L67,93 M67,93 L73,93 L73,98" />
+        android:pathData="M67,72 L67,81 M67,81 L73,81 L73,86" />
     <!-- 'ু' (u-car) -->
     <path
-        android:strokeColor="#FFEB3B"
-        android:strokeWidth="2"
+        android:strokeColor="#FFEA00"
+        android:strokeWidth="3"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M73,98 C73,101 70,102 67,102 C65,102 65,100 67,99" />
+        android:pathData="M73,86 C73,89 70,90 67,90 C65,90 65,88 67,87" />
 
 </vector>
