@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HTML Web App Wrapper</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Hind Siliguri', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 24px 16px;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .icon-wrapper {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--accent-color), #8b5cf6);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+
+        .icon-wrapper svg {
+            width: 36px;
+            height: 36px;
+            fill: white;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #3b82f6, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #60a5fa;
+        }
+
+        .card h2 svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-top: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge.admob {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .badge.fcm {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            background-color: var(--accent-color);
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+            font-family: inherit;
+            margin-top: 12px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            background-color: var(--accent-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            box-shadow: none;
+        }
+
+        .btn-outline:active {
+            background-color: rgba(59, 130, 246, 0.08);
+        }
+
+        .info-box {
+            background-color: rgba(245, 158, 11, 0.08);
+            border-left: 4px solid var(--warning);
+            padding: 12px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            color: #fcd34d;
+            margin-top: 12px;
+        }
+
+        .code-snippet {
+            background-color: #0b0f19;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #38bdf8;
+            overflow-x: auto;
+            margin-top: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bengali-text {
+            font-family: 'Hind Siliguri', sans-serif;
+        }
+
+        /* Accent spacing for WebView layout compatibility */
+        .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="icon-wrapper">
+                <!-- Code icon -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
+                </svg>
+            </div>
+            <h1 class="bengali-text">HTML এপ্লিকেশন র‍্যাপার</h1>
+            <p class="subtitle">Loaded from: <code style="color: #60a5fa;">assets/index.html</code></p>
+        </header>
+
+        <main>
+            <!-- Card 1: How to replace -->
+            <section class="card">
+                <h2 class="bengali-text">
+                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    কিভাবে আপনার নিজের HTML যুক্ত করবেন?
+                </h2>
+                <p class="bengali-text" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
+                    আপনি যেকোনো সময় আপনার HTML, CSS, এবং JS কোড এখানে বসিয়ে নিতে পারবেন। 
+                </p>
+                <ul>
+                    <li class="bengali-text">অ্যান্ড্রয়েড প্রজেক্টের <code style="color: #60a5fa;">app/src/main/assets/</code> ফোল্ডারে আপনার HTML ফাইলটি রাখুন।</li>
+                    <li class="bengali-text">ফাইলের নাম অবশ্যই <code style="color: #60a5fa;">index.html</code> হতে হবে।</li>
+                    <li class="bengali-text">HTML ফাইলের মধ্যে লোকাল রিসোর্স বা এক্সটার্নাল লিংক (যেমন CDN বা API) ব্যবহার করতে পারেন।</li>
+                </ul>
+                <div class="badge">Local Web Assets</div>
+            </section>
+
+            <!-- Card 2: AdMob Control -->
+            <section class="card">
+                <h2 class="bengali-text">
+                    <svg viewBox="0 0 24 24"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 8C4.67 8 4 7.33 4 6.5S4.67 5 5.5 5 7 5.67 7 6.5 6.33 8 5.5 8z"/></svg>
+                    AdMob বিজ্ঞাপন ইন্টিগ্রেশন
+                </h2>
+                <p class="bengali-text" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
+                    এই অ্যাপটিতে ব্যানার (Banner), ইন্টারস্টিশিয়াল (Interstitial) এবং নেটিভ (Native) এড দেওয়ার ব্যবস্থা রয়েছে। এড কোড ও সেটিংস অ্যান্ড্রয়েড নেটিভ লেয়ারে কনফিগার করা হয়েছে।
+                </p>
+                
+                <button class="btn" onclick="showTestInterstitial()">ইন্টারস্টিশিয়াল এড দেখান (Test Interstitial)</button>
+                <button class="btn btn-outline" onclick="triggerNativeAdRefresh()">নেটিভ এড লোড করুন (Test Native)</button>
+
+                <div class="info-box bengali-text">
+                    <strong>পলিসি টিপস:</strong> গুগল এডমোব পলিসি অনুযায়ী ব্যবহারকারীর সাধারণ নেভিগেশনে ব্যাঘাত না ঘটিয়ে সঠিক স্থানে বিজ্ঞাপন লোড করা অত্যন্ত জরুরি। ব্যানার এডটিকে স্ক্রিনের নিচে সুরক্ষিত স্থানে রাখা হয়েছে।
+                </div>
+                <div class="badge admob">AdMob Ready</div>
+            </section>
+
+            <!-- Card 3: Firebase Notification -->
+            <section class="card">
+                <h2 class="bengali-text">
+                    <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                    ফায়ারবেস পুশ নোটিফিকেশন
+                </h2>
+                <p class="bengali-text" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">
+                    ব্যাকগ্রাউন্ড এবং ফোরগ্রাউন্ডে নোটিফিকেশন পাওয়ার সুবিধা তৈরি করা আছে।
+                </p>
+                <ul>
+                    <li class="bengali-text">এফসিএম সার্ভিস স্বয়ংক্রিয়ভাবে নোটিফিকেশন রিসিভ করবে।</li>
+                    <li class="bengali-text">আপনার ফায়ারবেস একাউন্ট থেকে <code style="color: #60a5fa;">google-services.json</code> ফাইলটি প্রজেক্টের <code style="color: #60a5fa;">app/</code> ডিরেক্টরিতে রাখলেই কাজ করবে।</li>
+                </ul>
+                
+                <p class="bengali-text" style="font-size: 13px; color: var(--text-secondary); margin-top: 10px;">
+                    আপনার টোকেন দেখতে নিচে ক্লিক করুন:
+                </p>
+                <button class="btn btn-outline" onclick="getFcmToken()">এফসিএম টোকেন চেক করুন (FCM Token)</button>
+                <div id="token-box" class="code-snippet" style="display: none;">টোকেন লোড হচ্ছে...</div>
+
+                <div class="badge fcm">FCM Enabled</div>
+            </section>
+        </main>
+
+        <footer class="footer-note">
+            <p>&copy; 2026 HTML Web App Wrapper Project</p>
+            <p>Designed for Android Studio 2025+</p>
+        </footer>
+    </div>
+
+    <script>
+        // JS interface communication with Android native layer
+        function showTestInterstitial() {
+            if (window.AndroidBridge) {
+                window.AndroidBridge.showInterstitial();
+            } else {
+                alert("এটি শুধুমাত্র এন্ড্রয়েড এপে কাজ করবে। ব্রাউজার ডেমো হিসেবে কাজ করছে।");
+            }
+        }
+
+        function triggerNativeAdRefresh() {
+            if (window.AndroidBridge) {
+                window.AndroidBridge.refreshNativeAd();
+            } else {
+                alert("এটি শুধুমাত্র এন্ড্রয়েড এপে কাজ করবে।");
+            }
+        }
+
+        function getFcmToken() {
+            var tokenBox = document.getElementById("token-box");
+            tokenBox.style.display = "block";
+            if (window.AndroidBridge) {
+                var token = window.AndroidBridge.getFcmToken();
+                tokenBox.innerText = token ? token : "টোকেন এখনও তৈরি হয়নি বা ইন্টারনেট অফ রয়েছে।";
+            } else {
+                tokenBox.innerText = "FCM-TOKEN-PREVIEW-MODE-IN-BROWSER";
+            }
+        }
+
+        // Called by android native when fcm token changes
+        function onFcmTokenReceived(token) {
+            var tokenBox = document.getElementById("token-box");
+            if (tokenBox) {
+                tokenBox.innerText = token;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 1. Open Book / Scripture Page Layout on the Right -->
+    <!-- Shadow/Pages background for depth -->
+    <path
+        android:fillColor="#E0C097"
+        android:pathData="M51,33 Q66,29 81,33 L81,71 Q66,67 51,71 Z" />
+    <path
+        android:fillColor="#FDFBF7"
+        android:pathData="M51,31 Q66,27 81,31 L81,69 Q66,65 51,69 Z" />
+
+    <!-- 2. Elegant Written Text Lines (representing laws of Hindu Succession) -->
+    <path
+        android:strokeColor="#3E2723"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M55,41 L77,41" />
+    <path
+        android:strokeColor="#3E2723"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M55,47 L77,47" />
+    <path
+        android:strokeColor="#3E2723"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M55,53 L77,53" />
+    <path
+        android:strokeColor="#3E2723"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M55,59 L71,59" />
+
+    <!-- 3. Stylized Golden Calculator on the Left -->
+    <!-- Shadow for depth -->
+    <path
+        android:fillColor="#E6A100"
+        android:pathData="M27,29 h19 c2,0 3.5,1.5 3.5,3.5 v39 c0,2 -1.5,3.5 -3.5,3.5 h-19 c-2,0 -3.5,-1.5 -3.5,-3.5 v-39 c0,-2 1.5,-3.5 3.5,-3.5 z" />
+    <!-- Calculator body -->
+    <path
+        android:fillColor="#FFF8E1"
+        android:pathData="M26,27 h19 c2,0 3.5,1.5 3.5,3.5 v39 c0,2 -1.5,3.5 -3.5,3.5 h-19 c-2,0 -3.5,-1.5 -3.5,-3.5 v-39 c0,-2 1.5,-3.5 3.5,-3.5 z" />
+    <path
+        android:fillColor="#FFA000"
+        android:pathData="M28,29 h15 c1,0 1.5,0.5 1.5,1.5 v36 c0,1 -0.5,1.5 -1.5,1.5 h-15 c-1,0 -1.5,-0.5 -1.5,-1.5 v-36 c0,-1 0.5,-1.5 1.5,-1.5 z" />
+
+    <!-- Screen (Greenish digital LCD screen) -->
+    <path
+        android:fillColor="#E0F2F1"
+        android:pathData="M30,32 h11 v7 h-11 z" />
+    <!-- Digital numbers on the screen -->
+    <path
+        android:strokeColor="#004D40"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M32,35.5 h2 M36,35.5 h3" />
+
+    <!-- Keyboard buttons -->
+    <!-- Row 1: Orange/Red accent buttons -->
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M30,42 h3 v3 h-3 z M34,42 h3 v3 h-3 z M38,42 h3 v3 h-3 z" />
+    <!-- Row 2: Standard gold buttons -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M30,47 h3 v3 h-3 z M34,47 h3 v3 h-3 z M38,47 h3 v3 h-3 z" />
+    <!-- Row 3: Standard gold buttons -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M30,52 h3 v3 h-3 z M34,52 h3 v3 h-3 z M38,52 h3 v3 h-3 z" />
+    <!-- Row 4: Standard gold buttons -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M30,57 h3 v3 h-3 z M34,57 h3 v3 h-3 z M38,57 h3 v3 h-3 z" />
+
+    <!-- Equal key in bright orange -->
+    <path
+        android:fillColor="#E65100"
+        android:pathData="M30,62 h11 v3 h-11 z" />
+
+</vector>
