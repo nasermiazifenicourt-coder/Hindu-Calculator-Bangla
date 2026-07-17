@@ -20,59 +20,59 @@ data class HeirShare(
 ) : Serializable
 
 val allHeirs = listOf(
-    Heir("son", "Living Son", "জীবিত পুত্র", "1"),
-    Heir("predeceased_son_branch", "Predeceased Son's Family", "মৃত পুত্রের পরিবার", "2"),
-    Heir("predeceased_grandson_branch", "Predeceased Grandson's Family", "মৃত পৌত্রের পরিবার", "3"),
-    Heir("predeceased_great_grandson_branch", "Predeceased Great-Grandson's Family", "মৃত প্রপৌত্রের পরিবার", "4"),
-    Heir("widow", "Widow", "বিধবা", "5"),
-    Heir("unmarried_daughter", "Unmarried Daughter", "অবিবাহিত কন্যা", "6"),
-    Heir("married_daughter_son", "Married Daughter with Son", "পুত্রবতী বা পুত্রসম্ভবা কন্যা", "7"),
-    Heir("daughters_son", "Daughter's Son", "দৌহিত্র", "8"),
-    Heir("father", "Father", "পিতা", "9"),
-    Heir("mother", "Mother", "মাতা", "10"),
-    Heir("brother", "Full Brother", "সহোদর ভাই", "11"),
-    Heir("half_brother", "Half Brother", "বৈমাত্রেয় ভাই", "12"),
-    Heir("brothers_son", "Full Brother's Son", "সহোদর ভাইপো", "13"),
-    Heir("half_brothers_son", "Half Brother's Son", "বৈমাত্রেয় ভাইপো", "14"),
-    Heir("brothers_son_son", "Full Brother's Son's Son", "সহোদরের পৌত্র", "15"),
-    Heir("half_brothers_son_son", "Half Brother's Son's Son", "বৈমাত্রেয় ভাইয়ের পৌত্র", "16"),
-    Heir("sisters_son", "Sister's Son", "ভাগিনেয়", "17"),
-    Heir("paternal_grandfather", "Paternal Grandfather", "পিতামহ", "18"),
-    Heir("paternal_grandmother", "Paternal Grandmother", "পিতামহী", "19"),
-    Heir("paternal_uncle", "Full Paternal Uncle", "সহোদর কাকা", "20"),
-    Heir("half_paternal_uncle", "Half Paternal Uncle", "বৈমাত্রেয় কাকা", "21"),
-    Heir("paternal_uncles_son", "Full Paternal Uncle's Son", "সহোদর কাকার পুত্র", "22"),
-    Heir("half_paternal_uncles_son", "Half Paternal Uncle's Son", "বৈমাত্রেয় কাকার পুত্র", "23"),
-    Heir("paternal_uncles_son_son", "Full Paternal Uncle's Son's Son", "সহোদর কাকার পৌত্র", "24"),
-    Heir("half_paternal_uncles_son_son", "Half Paternal Uncle's Son's Son", "বৈমাত্রেয় কাকার পৌত্র", "25"),
-    Heir("fathers_sisters_son", "Father's Sister's Son", "ফুফাতো ভাই (পিতৃষ্বস্রীয়)", "26"),
-    Heir("paternal_great_grandfather", "Paternal Great-Grandfather", "প্রপিতামহ", "27"),
-    Heir("paternal_great_grandmother", "Paternal Great-Grandmother", "প্রপিতামহী", "28"),
-    Heir("paternal_great_uncle", "Full Paternal Great-Uncle", "সহোদর জ্যাঠামশাই/কাকা", "29"),
-    Heir("half_paternal_great_uncle", "Half Paternal Great-Uncle", "বৈমাত্রেয় জ্যাঠামশাই/কাকা", "30"),
-    Heir("paternal_great_uncles_son", "Full Paternal Great-Uncle's Son", "সহোদর প্রপিতামহের পৌত্র", "31"),
-    Heir("half_paternal_great_uncles_son", "Half Paternal Great-Uncle's Son", "বৈমাত্রেয় প্রপিতামহের পৌত্র", "32"),
-    Heir("paternal_great_uncles_son_son", "Full Paternal Great-Uncle's Son's Son", "সহোদর প্রপিতামহের প্রপৌত্র", "33"),
-    Heir("half_paternal_great_uncles_son_son", "Half Paternal Great-Uncle's Son's Son", "বৈমাত্রেয় প্রপিতামহের প্রপৌত্র", "34"),
-    Heir("fathers_fathers_sisters_son", "Father's Paternal Aunt's Son", "পিতার ফুফাতো ভাই", "35"),
-    Heir("maternal_grandfather", "Maternal Grandfather", "মাতামহ", "36"),
-    Heir("maternal_uncle", "Maternal Uncle", "মামা", "37"),
-    Heir("maternal_uncles_son", "Maternal Uncle's Son", "মামাতো ভাই", "38"),
-    Heir("maternal_uncles_son_son", "Maternal Uncle's Son's Son", "মামাতো ভাইয়ের পুত্র", "39"),
-    Heir("mothers_sisters_son", "Mother's Sister's Son", "মাসতুতো ভাই", "40"),
-    Heir("maternal_great_grandfather", "Maternal Great-Grandfather", "প্রমাতামহ", "41"),
-    Heir("maternal_great_uncle", "Maternal Great-Uncle", "প্রমাতামহের পুত্র (মাতার মামা)", "42"),
-    Heir("maternal_great_uncles_son", "Maternal Great-Uncle's Son", "প্রমাতামহের পৌত্র", "43"),
-    Heir("maternal_great_uncles_son_son", "Maternal Great-Uncle's Son's Son", "প্রমাতামহের প্রপৌত্র", "44"),
-    Heir("mothers_fathers_sisters_son", "Mother's Paternal Aunt's Son", "মাতার ফুফাতো ভাই", "45"),
-    Heir("maternal_great_great_grandfather", "Maternal Great-Great-Grandfather", "বৃদ্ধ প্রমাতামহ", "46"),
-    Heir("maternal_great_great_uncle", "Maternal Great-Great-Uncle", "বৃদ্ধ প্রমাতামহের পুত্র", "47"),
-    Heir("maternal_great_great_uncles_son", "Maternal Great-Great-Uncle's Son", "বৃদ্ধ প্রমাতামহের পৌত্র", "48"),
-    Heir("maternal_great_great_uncles_son_son", "Maternal Great-Great-Uncle's Son's Son", "বৃদ্ধ প্রমাতামহের প্রপৌত্র", "49"),
-    Heir("mothers_fathers_fathers_sisters_son", "Mother's Paternal Great-Aunt's Son", "মাতার পিতার ফুফাতো ভাই", "50"),
-    Heir("brothers_daughter_son", "Brother's Daughter's Son", "ভাইয়ের কন্যার পুত্র (ভাতিজি-পুত্র)", "51"),
-    Heir("sisters_daughter_son", "Sister's Daughter's Son", "বোনের কন্যার পুত্র (ভাগ্নি-পুত্র)", "52"),
-    Heir("paternal_uncles_daughter_son", "Paternal Uncle's Daughter's Son", "চাচাতো বোনের পুত্র", "53")
+    Heir("son", "Son", "পুত্র", "1"),
+    Heir("grandson", "Son's Son (Grandson)", "পুত্রের পুত্র", "2"),
+    Heir("great_grandson", "Son's Son's Son (Great-Grandson)", "পুত্রের পুত্রের পুত্র", "3"),
+    Heir("widow", "Widow", "স্ত্রী (পুত্রের স্ত্রী/পুত্রের পুত্রের স্ত্রী/পুত্রের পুত্রের পুত্রের স্ত্রী)", "4"),
+    Heir("daughter", "Daughter", "কন্যা", "5"),
+    Heir("daughters_son", "Daughter's Son", "কন্যার পুত্র", "6"),
+    Heir("father", "Father", "পিতা", "7"),
+    Heir("mother", "Mother", "মাতা", "8"),
+    Heir("brother", "Brother", "ভ্রাতা", "9"),
+    Heir("brothers_son", "Brother's Son", "ভ্রাতুষ্পুত্র", "10"),
+    Heir("brothers_son_son", "Brother's Son's Son", "ভ্রাতুষ্পুত্রের পুত্র", "11"),
+    Heir("sisters_son", "Sister's Son", "বোনের পুত্র", "12"),
+    Heir("paternal_grandfather", "Paternal Grandfather", "পিতার পিতা", "13"),
+    Heir("paternal_grandmother", "Paternal Grandmother", "পিতার মাতা", "14"),
+    Heir("paternal_uncle", "Paternal Uncle", "পিতার ভ্রাতা", "15"),
+    Heir("paternal_uncles_son", "Paternal Uncle's Son", "পিতার ভ্রাতার পুত্র", "16"),
+    Heir("paternal_uncles_son_son", "Paternal Uncle's Son's Son", "পিতার ভ্রাতা পুত্রের পুত্র", "17"),
+    Heir("fathers_sisters_son", "Father's Sister's Son", "পিতার ভগ্নীর পুত্র", "18"),
+    Heir("paternal_great_grandfather", "Paternal Great-Grandfather", "পিতার পিতার পিতা", "19"),
+    Heir("paternal_great_grandmother", "Paternal Great-Grandmother", "পিতার পিতার মাতা", "20"),
+    Heir("paternal_great_uncle", "Paternal Great-Uncle", "পিতার পিতার ভ্রাতা", "21"),
+    Heir("paternal_great_uncles_son", "Paternal Great-Uncle's Son", "পিতার খুড়ার পুত্র", "22"),
+    Heir("paternal_great_uncles_son_son", "Paternal Great-Uncle's Son's Son", "পিতার খুড়ার পুত্রের পুত্র", "23"),
+    Heir("fathers_fathers_sisters_son", "Father's Paternal Aunt's Son", "পিতার পিসির পুত্র", "24"),
+    Heir("sons_daughters_son", "Son's Daughter's Son", "পুত্রের কন্যার পুত্র", "25"),
+    Heir("sons_sons_daughters_son", "Son's Son's Daughter's Son", "পুত্রের পুত্রের কন্যার পুত্র", "26"),
+    Heir("brothers_daughter_son", "Brother's Daughter's Son", "ভ্রাতার কন্যার পুত্র", "27"),
+    Heir("brothers_sons_daughters_son", "Brother's Son's Daughter's Son", "ভ্রাতার পুত্রের কন্যার পুত্র", "28"),
+    Heir("paternal_uncles_daughter_son", "Paternal Uncle's Daughter's Son", "খুড়ার কন্যার পুত্র", "29"),
+    Heir("paternal_uncles_sons_daughters_son", "Paternal Uncle's Son's Daughter's Son", "খুড়ার পুত্রের কন্যার পুত্র", "30"),
+    Heir("paternal_great_uncles_daughter_son", "Paternal Great-Uncle's Daughter's Son", "পিতার খুড়ার কন্যার পুত্র", "31"),
+    Heir("paternal_great_uncles_sons_daughters_son", "Paternal Great-Uncle's Son's Daughter's Son", "পিতার খুড়ার পুত্রের কন্যার পুত্র", "32"),
+    Heir("maternal_grandfather", "Maternal Grandfather", "مাতার পিতা", "33"),
+    Heir("maternal_uncle", "Maternal Uncle", "মামা", "34"),
+    Heir("maternal_uncles_son", "Maternal Uncle's Son", "মামার পুত্র", "35"),
+    Heir("maternal_uncles_son_son", "Maternal Uncle's Son's Son", "মামার পুত্রের পুত্র", "36"),
+    Heir("mothers_sisters_son", "Mother's Sister's Son", "মাসির পুত্র", "37"),
+    Heir("maternal_great_grandfather", "Maternal Great-Grandfather", "মাতার পিতার পিতা", "38"),
+    Heir("maternal_great_uncle", "Maternal Great-Uncle", "মাতার পিতার ভ্রাতা", "39"),
+    Heir("maternal_great_uncles_son", "Maternal Great-Uncle's Son", "মাতার পিতার ভ্রাতার পুত্র", "40"),
+    Heir("mothers_fathers_sisters_son", "Mother's Father's Sister's Son", "মাতার পিতার ভগ্নির পুত্র", "41"),
+    Heir("mothers_fathers_sisters_son_son", "Mother's Father's Sister's Son's Son", "মাতার পিতার ভগ্নির পুত্রের পুত্র", "42"),
+    Heir("maternal_great_great_grandfather", "Maternal Great-Great-Grandfather", "মাতার পিতার পিতার পিতা", "43"),
+    Heir("maternal_great_great_uncle", "Maternal Great-Great-Uncle", "মাতার পিতার পিতার ভ্রাতা", "44"),
+    Heir("maternal_great_great_uncles_son", "Maternal Great-Great-Uncle's Son", "মাতার পিতার পিতার ভ্রাতার পুত্র", "45"),
+    Heir("maternal_great_great_uncles_son_son", "Maternal Great-Great-Uncle's Son's Son", "মাতার পিতার পিতার ভ্রাতার পুত্রের পুত্র", "46"),
+    Heir("mothers_fathers_fathers_sisters_son", "Mother's Paternal Great-Aunt's Son", "মাতার পিতার পিতার ভগ্নির পুত্র", "47"),
+    Heir("maternal_uncles_daughter_son", "Maternal Uncle's Daughter's Son", "মাতার ভ্রাতার কন্যার পুত্র", "48"),
+    Heir("maternal_uncles_sons_daughters_son", "Maternal Uncle's Son's Daughter's Son", "মাতার ভ্রাতার পুত্রের কন্যার পুত্র", "49"),
+    Heir("maternal_great_uncles_daughter_son", "Maternal Great-Uncle's Daughter's Son", "মাতার পিতার ভ্রাতার কন্যার পুত্র", "50"),
+    Heir("maternal_great_uncles_sons_daughters_son", "Maternal Great-Uncle's Son's Daughter's Son", "মাতার পিতার ভ্রাতার পুত্রের কন্যার পুত্র", "51"),
+    Heir("maternal_great_great_uncles_daughter_son", "Maternal Great-Great-Uncle's Daughter's Son", "মাতার পিতার পিতার ভ্রাতার কন্যার পুত্র", "52"),
+    Heir("maternal_great_great_uncles_sons_daughters_son", "Maternal Great-Great-Uncle's Son's Daughter's Son", "মাতার পিতার পিতার ভ্রাতার পুত্রের কন্যার পুত্র", "53")
 )
 
 fun getBengaliOrdinal(index: Int): String {
@@ -106,25 +106,36 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
     val results = mutableListOf<HeirShare>()
     if (selectedHeirs.isEmpty()) return emptyList()
 
-    // Class I (Tier 1) heirs that inherit together under Dayabhaga with Hindu Women's Right to Property Act of 1937
-    val class1Ids = setOf("son", "predeceased_son_branch", "predeceased_grandson_branch", "predeceased_great_grandson_branch", "widow")
-    
-    // Check if any Class I is selected and count > 0
+    // Class I (Tier 1) heirs under Dayabhaga with Hindu Women's Right to Property Act of 1937
+    val class1Ids = setOf("son", "grandson", "great_grandson", "widow")
+    val femaleSapindas = setOf("widow", "daughter", "mother", "paternal_grandmother", "paternal_great_grandmother")
+
     val activeClass1 = selectedHeirs.filter { it.key in class1Ids && it.value > 0 }
 
     if (activeClass1.isNotEmpty()) {
-        // All active Class I heirs take together.
-        // Under Dayabhaga, they share equally per stirpes. Widow takes same share as a son.
-        // Total number of shares is the sum of quantities of all selected Class I heirs.
-        val totalSharesCount = activeClass1.values.sum()
-        
+        val numSons = activeClass1["son"] ?: 0
+        val numGrandsons = activeClass1["grandson"] ?: 0
+        val numGreatGrandsons = activeClass1["great_grandson"] ?: 0
+        val numWidows = activeClass1["widow"] ?: 0
+
+        val widowShareUnit = if (numWidows > 0) 1 else 0
+        val totalSharesCount = numSons + numGrandsons + numGreatGrandsons + widowShareUnit
+
         for ((id, count) in selectedHeirs) {
             val heir = allHeirs.firstOrNull { it.id == id } ?: continue
             if (id in class1Ids) {
-                val groupFraction = "$count/$totalSharesCount"
-                val individualFraction = if (count > 1) "1/$totalSharesCount" else groupFraction
-                val individualAmount = propertyTotal / totalSharesCount
-                
+                val fractionDisplay = if (id == "widow" && count > 1) {
+                    "1/${totalSharesCount * count}"
+                } else {
+                    "1/$totalSharesCount"
+                }
+
+                val individualAmount = if (id == "widow") {
+                    propertyTotal / (totalSharesCount * count)
+                } else {
+                    propertyTotal / totalSharesCount
+                }
+
                 for (i in 1..count) {
                     val individualHeir = if (count > 1) {
                         Heir(
@@ -137,19 +148,20 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
                     } else {
                         heir
                     }
-                    val baseReason = if (count > 1) {
-                        "স্বাভাবিক অংশীদার (শ্রেণী-১)। মোট $count জনের যৌথ অংশ $groupFraction (জনপ্রতি $individualFraction)।"
+
+                    var reasonText = if (count > 1) {
+                        "স্বাভাবিক অংশীদার (শ্রেণী-১)। মোট $count জনের জনপ্রতি অংশ $fractionDisplay।"
                     } else {
-                        "স্বাভাবিক অংশীদার (শ্রেণী-১)।"
+                        "স্বাভাবিক অংশীদার (শ্রেণী-১)। অংশ $fractionDisplay।"
                     }
-                    val reasonText = if (heir.id.startsWith("widow")) {
-                        "$baseReason স্ত্রী বা বিধবা জীবনস্বত্বে ভোগ দখলকার হবে, এছাড়া খুব জুরুরী হলে আদালতের আদেশের মাধ্যমে সম্পত্তি বিক্রয় করতে পারেন।"
-                    } else {
-                        baseReason
+
+                    if (id in femaleSapindas) {
+                        reasonText += "\n\nমন্তব্য (সপিণ্ড মহিলা): ${individualHeir.nameBn} একজন সপিণ্ড মহিলা। তিনি জীবনস্বত্বে (Life Interest) এই সম্পত্তির মালিক হবেন। তিনি এটি ভোগ দখল করতে পারবেন কিন্তু হস্তান্তর বা বিক্রি করতে পারবেন না। তবে বিধবা স্ত্রী অত্যন্ত অস্বচ্ছল বা বিশেষ প্রয়োজনে আদালতের মাধ্যমে জমি বিক্রি করতে পারেন। তাঁর মৃত্যুর পর এই সম্পত্তি পুনরায় মূল মৃত ব্যক্তির নিকটবর্তী জীবিত উত্তরাধিকারীদের নিকট ফিরে যাবে।"
                     }
+
                     results.add(HeirShare(
                         heir = individualHeir,
-                        shareFraction = individualFraction,
+                        shareFraction = fractionDisplay,
                         shareAmount = individualAmount,
                         isHeir = true,
                         reason = reasonText,
@@ -174,14 +186,13 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
                         shareFraction = "0",
                         shareAmount = 0.0,
                         isHeir = false,
-                        reason = "নিকটবর্তী সপিণ্ড উত্তরাধিকারী (যেমন: পুত্র/বিধবা) এর উপস্থিতির কারণে অংশ বঞ্চিত।",
+                        reason = "নিকটবর্তী সপিণ্ড উত্তরাধিকারী (পুত্র/পৌত্র/প্রপৌত্র/বিধবা) এর উপস্থিতির কারণে অংশ বঞ্চিত।",
                         count = 1
                     ))
                 }
             }
         }
     } else {
-        // No Class I heirs are present.
         // Find the single highest priority (lowest rank index) selected heir
         val sortedSelectedHeirs = selectedHeirs
             .filter { it.value > 0 }
@@ -190,13 +201,13 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
 
         if (sortedSelectedHeirs.isNotEmpty()) {
             val (winningHeir, winningCount) = sortedSelectedHeirs.first()
-            
+
             for ((id, count) in selectedHeirs) {
                 val heir = allHeirs.first { it.id == id }
                 if (id == winningHeir.id) {
-                    val individualFraction = if (count > 1) "1/$count" else "1/1"
+                    val individualFraction = "1/$count"
                     val individualAmount = propertyTotal / count
-                    
+
                     for (i in 1..count) {
                         val individualHeir = if (count > 1) {
                             Heir(
@@ -209,22 +220,23 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
                         } else {
                             heir
                         }
-                        val baseReason = if (count > 1) {
+
+                        var baseReason = if (count > 1) {
                             "সর্বোচ্চ অগ্রাধিকারপ্রাপ্ত সপিণ্ড উত্তরাধিকারী (${heir.nameBn})। মোট $count জনের জনপ্রতি অংশ $individualFraction।"
                         } else {
                             "সর্বোচ্চ অগ্রাধিকারপ্রাপ্ত স্বাভাবিক সপিণ্ড উত্তরাধিকারী (${heir.nameBn})।"
                         }
-                        val reasonText = if (heir.id.startsWith("widow")) {
-                            "$baseReason স্ত্রী বা বিধবা জীবনস্বত্বে ভোগ দখলকার হবে, এছাড়া খুব জুরুরী হলে আদালতের আদেশের মাধ্যমে সম্পত্তি বিক্রয় করতে পারেন।"
-                        } else {
-                            baseReason
+
+                        if (id in femaleSapindas) {
+                            baseReason += "\n\nমন্তব্য (সপিণ্ড মহিলা): ${individualHeir.nameBn} একজন সপিণ্ড মহিলা। তিনি জীবনস্বত্বে (Life Interest) এই সম্পত্তির মালিক হবেন। তিনি এটি ভোগ দখল করতে পারবেন কিন্তু হস্তান্তর বা বিক্রি করতে পারবেন না। তাঁর মৃত্যুর পর এই সম্পত্তি পুনরায় মূল মৃত ব্যক্তির নিকটবর্তী জীবিত উত্তরাধিকারীদের নিকট ফিরে যাবে।"
                         }
+
                         results.add(HeirShare(
                             heir = individualHeir,
                             shareFraction = individualFraction,
                             shareAmount = individualAmount,
                             isHeir = true,
-                            reason = reasonText,
+                            reason = baseReason,
                             count = 1
                         ))
                     }
@@ -255,7 +267,6 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
             }
         }
     }
-    
-    // Sort results by priority, then by id suffix (to keep 1st, 2nd, 3rd in order)
+
     return results.sortedWith(compareBy<HeirShare> { it.heir.priority.toIntOrNull() ?: 999 }.thenBy { it.heir.id })
 }

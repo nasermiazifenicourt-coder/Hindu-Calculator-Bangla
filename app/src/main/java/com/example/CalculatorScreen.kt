@@ -521,7 +521,11 @@ fun CalculatorScreen() {
                     .fillMaxWidth()
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFFFF3E0), RoundedCornerShape(8.dp))
+                        .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -529,27 +533,27 @@ fun CalculatorScreen() {
                         Icon(
                             imageVector = Icons.Default.People,
                             contentDescription = "Selected Heirs",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(16.dp)
+                            tint = Color(0xFFE65100),
+                            modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "নির্বাচিত উত্তরাধিকারী ও সংখ্যা",
-                            fontSize = 12.sp,
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.DarkGray
+                            color = Color(0xFFE65100)
                         )
                     }
                     Box(
                         modifier = Modifier
-                            .background(Color(0xFFECEFF1), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                            .background(Color(0xFFE65100), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         val totalSelectedCount = selectedHeirCounts.values.sum()
                         Text(
                             text = "$totalSelectedCount জন নির্বাচিত",
-                            fontSize = 10.sp,
-                            color = Color.DarkGray,
+                            fontSize = 11.sp,
+                            color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
                     }

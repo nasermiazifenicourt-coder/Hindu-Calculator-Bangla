@@ -80,8 +80,8 @@ class MainActivity : ComponentActivity() {
     private var webViewInstance: WebView? = null
     private var fcmTokenState = mutableStateOf("")
 
-    // Set to true to test with official AdMob test ads during development, and false for Play Store release.
-    private val USE_TEST_ADS = true
+    // Set to true in debug mode to test with official AdMob test ads, and false in release mode for Play Store release.
+    private val USE_TEST_ADS = BuildConfig.DEBUG
 
     // AdMob Live Unit IDs
     private val LIVE_BANNER_ID = "ca-app-pub-4421171886586590/6553728229"
@@ -989,6 +989,7 @@ fun SplashScreen() {
     val context = LocalContext.current
     val imageBitmap = remember {
         val filenames = listOf(
+            "img_splash.jpeg",
             "mypro.jpeg", "mypro.jpg", "mypro.png", "mypro.webp",
             "splash.jpeg", "splash.jpg", "splash.png", "splash.webp",
             "splash_image.jpeg", "splash_image.jpg", "splash_image.png", "splash_image.webp"
@@ -1021,14 +1022,14 @@ fun SplashScreen() {
                 bitmap = imageBitmap,
                 contentDescription = "Splash Screen Image",
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Fit
             )
         } else {
             Image(
                 painter = painterResource(id = R.drawable.img_splash),
                 contentDescription = "Splash Screen Image",
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Fit
             )
         }
     }

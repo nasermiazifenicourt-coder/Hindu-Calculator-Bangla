@@ -82,4 +82,51 @@
         android:fillColor="#E65100"
         android:pathData="M30,62 h11 v3 h-11 z" />
 
+    <!-- Yellow Bengali text "হিন্দু" at the bottom curved dark section -->
+    <!-- 'ি' (i-car) -->
+    <path
+        android:strokeColor="#FFEB3B"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M35,101 L35,88 A6,6 0 0,1 45,84" />
+
+    <!-- 'হ' (ha) -->
+    <path
+        android:strokeColor="#FFEB3B"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M38,84 L52,84 M45,84 C42,88 38,89 40,92 C42,94 48,93 48,96 C48,99 43,101 40,101" />
+
+    <!-- 'ন্দু' (ndu conjunct) -->
+    <!-- Matra -->
+    <path
+        android:strokeColor="#FFEB3B"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M56,84 L76,84" />
+    <!-- 'ন' loop and joint to 'দ' -->
+    <path
+        android:strokeColor="#FFEB3B"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M59,84 L59,91 A2,2 0 1,1 57,93 L67,93" />
+    <!-- 'দ' body -->
+    <path
+        android:strokeColor="#FFEB3B"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M67,84 L67,93 M67,93 L73,93 L73,98" />
+    <!-- 'ু' (u-car) -->
+    <path
+        android:strokeColor="#FFEB3B"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M73,98 C73,101 70,102 67,102 C65,102 65,100 67,99" />
+
 </vector>
