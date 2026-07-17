@@ -1,5 +1,5 @@
 {
-  "name": "Hindu Calculator",
+  "name": "হিন্দু উত্তরাধিকার ক্যালকুলেটর",
   "description": "An elegant Android application that displays local HTML assets, supports Firebase Cloud Messaging notifications, and displays Google AdMob banner, native, and interstitial ads conforming to the Google AdMob Policy.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

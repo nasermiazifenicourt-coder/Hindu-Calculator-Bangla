@@ -28,7 +28,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandVertically
@@ -328,7 +333,7 @@ enum class DrawerItem(val titleBn: String, val icon: ImageVector) {
     COOPERATION("সহযোগীতায়", Icons.Default.FavoriteBorder),
     RESEARCH("তথ্য ও গবেষণা", Icons.Default.Search),
     CREDITS("কৃতজ্ঞতা", Icons.Default.Favorite),
-    POLICY("User Data Policy", Icons.Default.Lock),
+    POLICY("Privacy Policy", Icons.Default.Lock),
     DISCLAIMER("Disclaimer", Icons.Default.Warning),
     DEVELOPER("ডেভেলপার", Icons.Default.Code)
 }
@@ -387,13 +392,13 @@ fun MainScreen(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "দায়ভাগ ক্যালকুলেটর",
+                        text = "হিন্দু উত্তরাধিকার ক্যালকুলেটর",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = ComposeColor.White
                     )
                     Text(
-                        text = "বাংলাদেশ হিন্দু আইন",
+                        text = "দায়ভাগ নীতি",
                         fontSize = 13.sp,
                         color = ComposeColor.White.copy(alpha = 0.8f)
                     )
@@ -409,6 +414,30 @@ fun MainScreen(
                         .padding(horizontal = 12.dp)
                 ) {
                     DrawerItem.values().forEach { item ->
+                        val interactionSource = remember { MutableInteractionSource() }
+                        val isHovered by interactionSource.collectIsHoveredAsState()
+                        val isPressed by interactionSource.collectIsPressedAsState()
+                        val isTriggered = isHovered || isPressed
+
+                        val scale by animateFloatAsState(
+                            targetValue = if (isTriggered) 1.03f else 1.0f,
+                            label = "scale"
+                        )
+                        val elevationScale by animateFloatAsState(
+                            targetValue = if (isTriggered) 6f else 0f,
+                            label = "elevation"
+                        )
+                        val translationX by animateFloatAsState(
+                            targetValue = if (isTriggered) 6f else 0f,
+                            label = "translationX"
+                        )
+
+                        val containerColor = when {
+                            currentScreen == item -> lightOrange
+                            isTriggered -> lightOrange.copy(alpha = 0.5f)
+                            else -> ComposeColor.Transparent
+                        }
+
                         NavigationDrawerItem(
                             label = {
                                 Text(
@@ -421,7 +450,17 @@ fun MainScreen(
                             onClick = {
                                 if (currentScreen != item) {
                                     currentScreen = item
-                                    onShowInterstitial()
+                                    val noAdScreens = listOf(
+                                        DrawerItem.POLICY,
+                                        DrawerItem.DEVELOPER,
+                                        DrawerItem.DISCLAIMER,
+                                        DrawerItem.CREDITS,
+                                        DrawerItem.RESEARCH,
+                                        DrawerItem.COOPERATION
+                                    )
+                                    if (item !in noAdScreens) {
+                                        onShowInterstitial()
+                                    }
                                 }
                                 scope.launch { drawerState.close() }
                             },
@@ -436,11 +475,21 @@ fun MainScreen(
                                 selectedContainerColor = lightOrange,
                                 selectedIconColor = primaryOrange,
                                 selectedTextColor = primaryOrange,
-                                unselectedContainerColor = ComposeColor.Transparent,
+                                unselectedContainerColor = containerColor,
                                 unselectedIconColor = ComposeColor.Gray,
                                 unselectedTextColor = ComposeColor.Black
                             ),
-                            modifier = Modifier.padding(vertical = 2.dp),
+                            interactionSource = interactionSource,
+                            modifier = Modifier
+                                .padding(vertical = 2.dp)
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                    this.translationX = density * translationX
+                                    shadowElevation = density * elevationScale
+                                    shape = RoundedCornerShape(12.dp)
+                                    clip = true
+                                },
                             shape = RoundedCornerShape(12.dp)
                         )
                     }
@@ -537,7 +586,7 @@ fun MainScreen(
             ) {
                 // Top Banner Ad (replacing the previous Native/Sponsor Ad)
                 Surface(
-                    tonalElevation = 2.dp,
+                    color = ComposeColor(0xFF4A148C), // Beautiful deep purple
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(bannerHeight)
@@ -751,13 +800,13 @@ fun AdMobNativeAdSection(
     onRefreshNativeAd: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val darkNavyBlue = ComposeColor(0xFF0A1D37) // Deep solid navy blue
-    val borderNavy = ComposeColor(0xFF1E3A8A) // Soft solid border navy blue
-    val textLight = ComposeColor(0xFFE2E8F0) // Clean high-contrast off-white for navy background
+    val purpleBackground = ComposeColor(0xFF311B92) // Beautiful deep solid purple container
+    val borderPurple = ComposeColor(0xFF7B1FA2) // Vibrant purple border
+    val textLight = ComposeColor(0xFFEDE7F6) // Clean high-contrast lavender off-white
 
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = darkNavyBlue
+            containerColor = purpleBackground
         ),
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
@@ -765,7 +814,7 @@ fun AdMobNativeAdSection(
             .fillMaxWidth()
             .border(
                 width = 1.dp,
-                color = borderNavy,
+                color = borderPurple,
                 shape = RoundedCornerShape(12.dp)
             )
     ) {
@@ -779,7 +828,7 @@ fun AdMobNativeAdSection(
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = "Ad Info",
-                        tint = ComposeColor(0xFFE65100),
+                        tint = ComposeColor(0xFFFFB74D), // Soft orange/amber icon
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
@@ -796,14 +845,14 @@ fun AdMobNativeAdSection(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
-                            .background(ComposeColor(0xFFE65100).copy(alpha = 0.2f))
+                            .background(ComposeColor(0xFFFF9800).copy(alpha = 0.2f))
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = "AD",
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
-                            color = ComposeColor(0xFFFF7043)
+                            color = ComposeColor(0xFFFFB74D)
                         )
                     }
                     
@@ -817,7 +866,7 @@ fun AdMobNativeAdSection(
                             text = if (expanded) "লুকান (Hide)" else "বিস্তারিত (Show)",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = ComposeColor(0xFF29B6F6) // Bright sky blue for great clickability & contrast
+                            color = ComposeColor(0xFFE040FB) // Light purple/pink for beautiful visibility
                         )
                     }
                 }
@@ -831,13 +880,13 @@ fun AdMobNativeAdSection(
                 Column {
                     Spacer(modifier = Modifier.height(10.dp))
                     
-                    // Inside the card, we wrap the ad content in a solid clean white background
+                    // Inside the card, we wrap the ad content in a solid clean deep purple background
                     // to guarantee pristine text contrast and absolute compliance with AdMob rules.
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(ComposeColor.White)
+                            .background(ComposeColor(0xFF4A148C)) // Extra deep purple background
                             .padding(8.dp)
                     ) {
                         if (nativeAd != null) {
@@ -885,7 +934,7 @@ private fun populateNativeAdViewProgrammatically(
         text = nativeAd.headline
         textSize = 15f
         setTypeface(null, Typeface.BOLD)
-        setTextColor(Color.parseColor("#1A1A1A")) // Dark charcoal for maximum readability
+        setTextColor(Color.parseColor("#FFFF8D")) // Bright warm neon yellow for amazing contrast on purple
         layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -900,7 +949,7 @@ private fun populateNativeAdViewProgrammatically(
     val body = TextView(context).apply {
         text = nativeAd.body
         textSize = 13f
-        setTextColor(Color.parseColor("#555555")) // Medium-dark gray for policy compliance and body contrast
+        setTextColor(Color.parseColor("#EDE7F6")) // Light lavender off-white for high readability
         layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -914,7 +963,7 @@ private fun populateNativeAdViewProgrammatically(
     // Call to Action button
     val ctaButton = AndroidButton(context).apply {
         text = nativeAd.callToAction ?: "Visit"
-        setBackgroundColor(Color.parseColor("#3b82f6")) // Accent Color blue
+        setBackgroundColor(Color.parseColor("#FF9800")) // Vibrant Orange CTA button that pops out beautifully
         setTextColor(Color.WHITE)
         textSize = 13f
         isAllCaps = false
@@ -936,13 +985,13 @@ private fun populateNativeAdViewProgrammatically(
 
 @Composable
 fun NativeAdPlaceholderLayout(onRefresh: () -> Unit) {
-    val primaryOrange = ComposeColor(0xFFE65100)
+    val primaryOrange = ComposeColor(0xFFFF9800)
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(ComposeColor.White) // Solid high-contrast background instead of semi-transparent
-            .border(1.dp, ComposeColor(0xFFEEEEEE), RoundedCornerShape(8.dp))
+            .background(ComposeColor(0xFF4A148C)) // Solid purple background
+            .border(1.dp, ComposeColor(0xFF7B1FA2), RoundedCornerShape(8.dp))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -950,13 +999,13 @@ fun NativeAdPlaceholderLayout(onRefresh: () -> Unit) {
             text = "নেটিভ এড প্লেসহোল্ডার (Test Ad Demo Layout)",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = ComposeColor(0xFF222222) // Crisp, dark text
+            color = ComposeColor(0xFFFFEB3B) // Bright yellow headline
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = "রিয়েল নেটিভ এড লোড করতে AdMob একাউন্টের লাইভ প্লেসমেন্ট আইডি ও রিলিজ বিল্ড ব্যবহার করুন।",
             fontSize = 12.sp,
-            color = ComposeColor(0xFF666666), // Solid gray for maximum readability
+            color = ComposeColor(0xFFEDE7F6), // Clean light lavender contrast text
             modifier = Modifier.padding(horizontal = 8.dp),
             lineHeight = 16.sp
         )

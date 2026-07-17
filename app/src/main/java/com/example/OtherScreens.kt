@@ -7,15 +7,32 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun SapindasScreen() {
@@ -342,26 +359,137 @@ fun UserDataPolicyScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.Black)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "User Data Policy",
-            fontSize = 22.sp,
+            text = "Privacy Policy for Hindu Calculator",
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFFE65100),
-            modifier = Modifier.padding(bottom = 16.dp)
+            color = Color(0xFFFF9800)
+        )
+        Text(
+            text = "Effective Date: 01/01/2026",
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFFB0BEC5)
         )
 
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFF3E2723)
+            )
+        ) {
+            Column(modifier = Modifier.padding(14.dp)) {
                 Text(
-                    text = "আমরা ব্যবহারকারীর গোপনীয়তাকে সর্বোচ্চ গুরুত্ব দিয়ে থাকি। এই অ্যাপ্লিকেশনটি কোনো ব্যবহারকারীর ব্যক্তিগত তথ্য, যেমন নাম, ইমেইল, মোবাইল নম্বর বা লোকেশন সংরক্ষণ অথবা কোনো সার্ভারে আপলোড করে না। সমস্ত হিসাব-নিকাশ সম্পূর্ণভাবে অফলাইনে এবং আপনার নিজের ডিভাইসে প্রসেস করা হয়।",
+                    text = "*****We clearly declared that, We use some disguised name in different drafting of law cases of this site.  Unfortunately if it’s may similar with anybody it just  undesired. Nobody is similar to those case character*****",
                     fontSize = 14.sp,
-                    lineHeight = 22.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 20.sp,
+                    color = Color(0xFFFF8A80)
                 )
             }
+        }
+
+        Text(
+            text = "At Hindu Calculator, we are committed to protecting your privacy and ensuring that your personal information is handled securely and responsibly. This Privacy Policy outlines how we collect, use, and protect your information when you visit our website, engage with our services, or interact with us in any other way.",
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+            color = Color(0xFFECEFF1)
+        )
+
+        PolicySection(
+            title = "1. Information We Collect",
+            content = "We may collect various types of information from you when you visit our website or use our services, including but not limited to:\n\n" +
+                    "• Personal Information: Name, email address, phone number, and other details you provide when you register, subscribe, or contact us.\n\n" +
+                    "• Usage Data: Information such as IP address, browser type, operating system, and the pages you visit on our site.\n\n" +
+                    "• Cookies: We may use cookies to enhance your experience on our site. Cookies help us remember your preferences and provide you with a tailored experience."
+        )
+
+        PolicySection(
+            title = "2. How We Use Your Information",
+            content = "We use the information we collect for the following purposes:\n" +
+                    "• To provide and maintain our services.\n" +
+                    "• To improve our website’s functionality and performance.\n" +
+                    "• To respond to your inquiries and provide customer support.\n" +
+                    "• To send newsletters, updates, and other promotional materials (only if you have opted in to receive them).\n" +
+                    "• To comply with legal obligations or protect our legal rights."
+        )
+
+        PolicySection(
+            title = "3. Third-Party Sharing",
+            content = "We do not sell or rent your personal information to third parties. However, we may share your information with third parties in the following circumstances:\n" +
+                    "• With service providers who help us operate the website or provide our services (such as hosting services, email services, etc.).\n" +
+                    "• To comply with legal obligations, court orders, or government requests.\n" +
+                    "• To protect the rights, property, or safety of Hindu Calculator mobile application, our users, or others."
+        )
+
+        PolicySection(
+            title = "4. Cookies and Tracking Technologies",
+            content = "Hindu Calculator uses cookies and other tracking technologies to enhance your experience on our website. You can control the use of cookies through your browser settings. However, disabling cookies may affect the functionality of the site."
+        )
+
+        PolicySection(
+            title = "5. Data Security",
+            content = "We take appropriate technical and organizational measures to protect your personal information from unauthorized access, use, disclosure, or destruction. However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security."
+        )
+
+        PolicySection(
+            title = "6. Your Rights",
+            content = "You have the following rights regarding your personal information:\n" +
+                    "• The right to access, update, or delete your personal data.\n" +
+                    "• The right to object to or restrict the processing of your data.\n" +
+                    "• The right to withdraw your consent for data processing (where consent is required).\n" +
+                    "• The right to lodge a complaint with a data protection authority.\n" +
+                    "• To exercise any of these rights, please contact us at [insert contact email]."
+        )
+
+        PolicySection(
+            title = "7. Children’s Privacy",
+            content = "Our website is not intended for children under the age of 13, and we do not knowingly collect personal information from children. If we discover that we have inadvertently collected information from a child under 13, we will take steps to delete the data as soon as possible."
+        )
+
+        PolicySection(
+            title = "8. Changes to This Privacy Policy",
+            content = "We reserve the right to update or modify this Privacy Policy at any time. Any changes will be posted on this page with an updated effective date. We encourage you to review this policy periodically."
+        )
+
+        PolicySection(
+            title = "9. Contact Us",
+            content = "If you have any questions or concerns regarding this Privacy Policy or the practices of Law Academy BD, please contact us at:\n\n" +
+                    "Email: lawacademybd2020@gmail.com\n" +
+                    "Phone: +8801874486972\n" +
+                    "Address: 2nd floor, Taranibash, Trank Road, Feni, Bangladesh\n\n" +
+                    "This Privacy Policy reflects the commitment of (Hindu Calculator) Law Academy BD to safeguarding your personal information and maintaining your trust."
+        )
+    }
+}
+
+@Composable
+fun PolicySection(title: String, content: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF1E1E1E)
+        )
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFFF9800),
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+            Text(
+                text = content,
+                fontSize = 14.sp,
+                lineHeight = 21.sp,
+                color = Color(0xFFECEFF1)
+            )
         }
     }
 }
@@ -400,44 +528,204 @@ fun DisclaimerScreen() {
 
 @Composable
 fun DeveloperScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .verticalScroll(rememberScrollState())
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
+        Text(
+            text = "ডেভেলপার পরিচিতি",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFFF9800),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        // Interactive Developer Card with Image
+        val interactionSource = remember { MutableInteractionSource() }
+        val isHovered by interactionSource.collectIsHoveredAsState()
+        val isPressed by interactionSource.collectIsPressedAsState()
+        val isInteracted = isHovered || isPressed
+
+        val scale by animateFloatAsState(targetValue = if (isInteracted) 1.05f else 1.0f, label = "cardScale")
+
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = {}
+                ),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+            elevation = CardDefaults.cardElevation(defaultElevation = if (isInteracted) 12.dp else 4.dp),
+            shape = RoundedCornerShape(24.dp)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .border(
+                        width = 1.dp,
+                        color = if (isInteracted) Color(0xFFFF9800) else Color(0xFF2C2C2C),
+                        shape = RoundedCornerShape(24.dp)
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Interactive Photo Frame with Gradient Glow Border
+                Box(
+                    modifier = Modifier
+                        .size(160.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .border(
+                            width = 4.dp,
+                            brush = Brush.linearGradient(
+                                colors = if (isInteracted) {
+                                    listOf(Color(0xFFFFD54F), Color(0xFFFF3D00))
+                                } else {
+                                    listOf(Color(0xFFFF9800), Color(0xFFE65100))
+                                }
+                            ),
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .background(Color(0xFF1E1E1E))
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.dev),
+                        contentDescription = "Naser Miazi Photo",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
                 Text(
-                    text = "ডেভেলপার পরিচিতি",
+                    text = "Naser Miazi (Advocate)",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFE65100)
+                    color = Color.White,
+                    textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+
+                Spacer(modifier = Modifier.height(6.dp))
+
                 Text(
-                    text = "নাসের মিয়াঁজি ফেনীকোর্ট",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "nasermiazifenicourt@gmail.com",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "সনাতন ধর্মাবলম্বীদের অধিকার ও শিক্ষা প্রসারের জন্য একটি ডিজিটাল সমাধান।",
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Owner of the Law Academy BD.",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFFFFB74D),
+                    textAlign = TextAlign.Center
                 )
             }
+        }
+
+        // Contact Info Section Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF121212)),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xFF2C2C2C),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                DeveloperInfoRow(
+                    icon = Icons.Default.Email,
+                    label = "Email",
+                    value = "lawacademybd2020@gmail.com",
+                    iconColor = Color(0xFFFF9800)
+                )
+
+                Spacer(
+                    modifier = Modifier
+                        .height(1.dp)
+                        .fillMaxWidth()
+                        .background(Color(0xFF2C2C2C))
+                )
+
+                DeveloperInfoRow(
+                    icon = Icons.Default.Phone,
+                    label = "Phone",
+                    value = "+8801874486972",
+                    iconColor = Color(0xFF4CAF50)
+                )
+
+                Spacer(
+                    modifier = Modifier
+                        .height(1.dp)
+                        .fillMaxWidth()
+                        .background(Color(0xFF2C2C2C))
+                )
+
+                DeveloperInfoRow(
+                    icon = Icons.Default.LocationOn,
+                    label = "Address",
+                    value = "Room- Law Academy, 2nd floor, Taranibash, Trank Road, Feni, Bangladesh",
+                    iconColor = Color(0xFFF44336)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DeveloperInfoRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    iconColor: Color
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(iconColor.copy(alpha = 0.15f), RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = iconColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                color = Color(0xFFB0BEC5),
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = value,
+                fontSize = 15.sp,
+                color = Color.White,
+                fontWeight = FontWeight.Normal,
+                lineHeight = 20.sp
+            )
         }
     }
 }
