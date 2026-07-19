@@ -19,12 +19,20 @@ data class HeirShare(
     val count: Int = 1
 ) : Serializable
 
+data class PredeceasedSon(
+    val id: Int,
+    val widowCount: Int = 0,
+    val grandsonCount: Int = 0
+) : Serializable
+
 val allHeirs = listOf(
     Heir("son", "Son", "পুত্র", "1"),
-    Heir("grandson", "Son's Son (Grandson)", "পুত্রের পুত্র", "2"),
-    Heir("great_grandson", "Son's Son's Son (Great-Grandson)", "পুত্রের পুত্রের পুত্র", "3"),
-    Heir("widow", "Widow", "স্ত্রী (পুত্রের স্ত্রী/পুত্রের পুত্রের স্ত্রী)", "4"),
-    Heir("daughter", "Daughter", "কন্যা", "5"),
+    Heir("grandson", "Son's Son (Grandson)", "মৃত পুত্রের পুত্র (পৌত্র)", "2"),
+    Heir("great_grandson", "Son's Son's Son (Great-Grandson)", "মৃত পুত্রের পুত্রের পুত্র (প্রপৌত্র)", "3"),
+    Heir("widow", "Widow", "স্ত্রী (জীবনস্বত্ব)", "4"),
+    Heir("predeceased_son_widow", "Predeceased Son's Widow", "১ম মৃত পুত্রের স্ত্রী (বিধবা)", "4"),
+    Heir("unmarried_daughter", "Unmarried Daughter", "অবিবাহিতা কন্যা", "5"),
+    Heir("daughter_with_son", "Daughter with Son (or likely to have a son)", "পুত্রবতী কন্যা", "5"),
     Heir("daughters_son", "Daughter's Son", "কন্যার পুত্র", "6"),
     Heir("father", "Father", "পিতা", "7"),
     Heir("mother", "Mother", "মাতা", "8"),
@@ -52,7 +60,7 @@ val allHeirs = listOf(
     Heir("paternal_uncles_sons_daughters_son", "Paternal Uncle's Son's Daughter's Son", "খুড়ার পুত্রের কন্যার পুত্র", "30"),
     Heir("paternal_great_uncles_daughter_son", "Paternal Great-Uncle's Daughter's Son", "পিতার খুড়ার কন্যার পুত্র", "31"),
     Heir("paternal_great_uncles_sons_daughters_son", "Paternal Great-Uncle's Son's Daughter's Son", "পিতার খুড়ার পুত্রের কন্যার পুত্র", "32"),
-    Heir("maternal_grandfather", "Maternal Grandfather", "مাতার পিতা", "33"),
+    Heir("maternal_grandfather", "Maternal Grandfather", "মাতার পিতা (মাতামহ)", "33"),
     Heir("maternal_uncle", "Maternal Uncle", "মামা", "34"),
     Heir("maternal_uncles_son", "Maternal Uncle's Son", "মামার পুত্র", "35"),
     Heir("maternal_uncles_son_son", "Maternal Uncle's Son's Son", "মামার পুত্রের পুত্র", "36"),
@@ -102,79 +110,164 @@ fun getEnglishOrdinal(index: Int): String {
     }
 }
 
-fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, Int>): List<HeirShare> {
+fun calculateDayabhagaShares(
+    propertyTotal: Double,
+    selectedHeirs: Map<String, Int>,
+    predeceasedSonsList: List<PredeceasedSon> = emptyList()
+): List<HeirShare> {
     val results = mutableListOf<HeirShare>()
     if (selectedHeirs.isEmpty()) return emptyList()
 
     // Class I (Tier 1) heirs under Dayabhaga with Hindu Women's Right to Property Act of 1937
-    val class1Ids = setOf("son", "grandson", "great_grandson", "widow")
-    val femaleSapindas = setOf("widow", "daughter", "mother", "paternal_grandmother", "paternal_great_grandmother")
+    val class1Ids = setOf("son", "grandson", "great_grandson", "widow", "predeceased_son_widow")
+    val femaleSapindas = setOf("widow", "predeceased_son_widow", "unmarried_daughter", "daughter_with_son", "mother", "paternal_grandmother", "paternal_great_grandmother")
 
     val activeClass1 = selectedHeirs.filter { it.key in class1Ids && it.value > 0 }
 
     if (activeClass1.isNotEmpty()) {
-        val numSons = activeClass1["son"] ?: 0
-        val numGrandsons = activeClass1["grandson"] ?: 0
-        val numGreatGrandsons = activeClass1["great_grandson"] ?: 0
-        val numWidows = activeClass1["widow"] ?: 0
+        // Build/normalize predeceased sons list
+        var pSons = predeceasedSonsList
+        if (pSons.isEmpty()) {
+            val totalWidows = selectedHeirs["predeceased_son_widow"] ?: 0
+            val totalGrandsons = selectedHeirs["grandson"] ?: 0
+            if (totalWidows > 0 || totalGrandsons > 0) {
+                if (totalWidows > 0 && totalGrandsons > 0) {
+                    pSons = listOf(PredeceasedSon(id = 1, widowCount = totalWidows, grandsonCount = totalGrandsons))
+                } else if (totalWidows > 0) {
+                    pSons = List(totalWidows) { PredeceasedSon(id = it + 1, widowCount = 1) }
+                } else {
+                    pSons = List(totalGrandsons) { PredeceasedSon(id = it + 1, grandsonCount = 1) }
+                }
+            }
+        }
+
+        val activePredeceasedSons = pSons.filter { it.widowCount > 0 || it.grandsonCount > 0 }
+
+        val numSons = selectedHeirs["son"] ?: 0
+        val numWidows = selectedHeirs["widow"] ?: 0
+        val numGreatGrandsons = selectedHeirs["great_grandson"] ?: 0
 
         val widowShareUnit = if (numWidows > 0) 1 else 0
-        val totalSharesCount = numSons + numGrandsons + numGreatGrandsons + widowShareUnit
+        val totalBranchesCount = numSons + widowShareUnit + numGreatGrandsons + activePredeceasedSons.size
 
-        for ((id, count) in selectedHeirs) {
-            val heir = allHeirs.firstOrNull { it.id == id } ?: continue
-            if (id in class1Ids) {
-                val fractionDisplay = if (id == "widow" && count > 1) {
-                    "1/${totalSharesCount * count}"
+        val branchAmount = if (totalBranchesCount > 0) propertyTotal / totalBranchesCount else 0.0
+        val branchFraction = "1/$totalBranchesCount"
+
+        // 1. Process Living Sons
+        if (numSons > 0) {
+            val heir = allHeirs.first { it.id == "son" }
+            for (i in 1..numSons) {
+                val individualHeir = if (numSons > 1) {
+                    Heir(
+                        id = "son_$i",
+                        nameEn = "${getEnglishOrdinal(i)} ${heir.nameEn}",
+                        nameBn = if (heir.nameBn.startsWith("১ম ")) {
+                            heir.nameBn.replaceFirst("১ম ", "${getBengaliOrdinal(i)} ")
+                        } else {
+                            "${getBengaliOrdinal(i)} ${heir.nameBn}"
+                        },
+                        priority = heir.priority,
+                        category = heir.category
+                    )
                 } else {
-                    "1/$totalSharesCount"
+                    heir
                 }
+                results.add(HeirShare(
+                    heir = individualHeir,
+                    shareFraction = branchFraction,
+                    shareAmount = branchAmount,
+                    isHeir = true,
+                    reason = if (numSons > 1) "স্বাভাবিক অংশীদার (শ্রেণী-১)। মোট $numSons জন পুত্রের জনপ্রতি অংশ $branchFraction।" else "স্বাভাবিক অংশীদার (শ্রেণী-১)। অংশ $branchFraction।",
+                    count = 1
+                ))
+            }
+        }
 
-                val individualAmount = if (id == "widow") {
-                    propertyTotal / (totalSharesCount * count)
+        // 2. Process Deceased's Widows
+        if (numWidows > 0) {
+            val heir = allHeirs.first { it.id == "widow" }
+            val fractionDisplay = if (numWidows > 1) "1/${totalBranchesCount * numWidows}" else branchFraction
+            val individualAmount = branchAmount / numWidows
+            for (i in 1..numWidows) {
+                val individualHeir = if (numWidows > 1) {
+                    Heir(
+                        id = "widow_$i",
+                        nameEn = "${getEnglishOrdinal(i)} ${heir.nameEn}",
+                        nameBn = if (heir.nameBn.startsWith("১ম ")) {
+                            heir.nameBn.replaceFirst("১ম ", "${getBengaliOrdinal(i)} ")
+                        } else {
+                            "${getBengaliOrdinal(i)} ${heir.nameBn}"
+                        },
+                        priority = heir.priority,
+                        category = heir.category
+                    )
                 } else {
-                    propertyTotal / totalSharesCount
+                    heir
                 }
+                var reasonText = if (numWidows > 1) {
+                    "স্বাভাবিক অংশীদার (শ্রেণী-১)। মোট $numWidows জন বিধবার জনপ্রতি অংশ $fractionDisplay (১টি স্ত্রীর অংশ সমান ভাগে বণ্টিত)।"
+                } else {
+                    "স্বাভাবিক অংশীদার (শ্রেণী-১)। অংশ $fractionDisplay।"
+                }
+                reasonText += "\nমন্তব্য (সপিণ্ড মহিলা): ${individualHeir.nameBn} একজন সপিণ্ড মহিলা। তিনি জীবনস্বত্বে (Life Interest) এই সম্পত্তির মালিক হবেন। তিনি এটি ভোগ দখল করতে পারবেন কিন্তু হস্তান্তর বা বিক্রি করতে পারবেন না। তবে বিধবা স্ত্রী অত্যন্ত অস্বচ্ছল বা বিশেষ প্রয়োজনে আদালতের মাধ্যমে জমি বিক্রি করতে পারেন। তাঁর মৃত্যুর পর এই সম্পত্তি পুনরায় মূল মৃত ব্যক্তির নিকটবর্তী জীবিত উত্তরাধিকারীদের নিকট ফিরে যাবে।"
+                results.add(HeirShare(
+                    heir = individualHeir,
+                    shareFraction = fractionDisplay,
+                    shareAmount = individualAmount,
+                    isHeir = true,
+                    reason = reasonText,
+                    count = 1
+                ))
+            }
+        }
 
+        // 3. Process Great Grandsons
+        if (numGreatGrandsons > 0) {
+            val heir = allHeirs.first { it.id == "great_grandson" }
+            for (i in 1..numGreatGrandsons) {
+                val individualHeir = if (numGreatGrandsons > 1) {
+                    Heir(
+                        id = "great_grandson_$i",
+                        nameEn = "${getEnglishOrdinal(i)} ${heir.nameEn}",
+                        nameBn = if (heir.nameBn.startsWith("১ম ")) {
+                            heir.nameBn.replaceFirst("১ম ", "${getBengaliOrdinal(i)} ")
+                        } else {
+                            "${getBengaliOrdinal(i)} ${heir.nameBn}"
+                        },
+                        priority = heir.priority,
+                        category = heir.category
+                    )
+                } else {
+                    heir
+                }
+                results.add(HeirShare(
+                    heir = individualHeir,
+                    shareFraction = branchFraction,
+                    shareAmount = branchAmount,
+                    isHeir = true,
+                    reason = "স্বাভাবিক অংশীদার (শ্রেণী-১)। প্রপৌত্র হিসেবে তার সপিণ্ড শাখার অংশ। অংশ $branchFraction।",
+                    count = 1
+                ))
+            }
+        }
+
+        // 4. Process Predeceased Sons representation
+        activePretestedSonsOrNormal(activePredeceasedSons, totalBranchesCount, branchAmount, branchFraction, results)
+
+        // 5. Process Non-Winning / Excluded Heirs
+        selectedHeirs.forEach { (id, count) ->
+            if (id !in class1Ids) {
+                val heir = allHeirs.firstOrNull { it.id == id } ?: return@forEach
                 for (i in 1..count) {
                     val individualHeir = if (count > 1) {
                         Heir(
                             id = "${heir.id}_$i",
                             nameEn = "${getEnglishOrdinal(i)} ${heir.nameEn}",
-                            nameBn = "${getBengaliOrdinal(i)} ${heir.nameBn}",
-                            priority = heir.priority,
-                            category = heir.category
-                        )
-                    } else {
-                        heir
-                    }
-
-                    var reasonText = if (count > 1) {
-                        "স্বাভাবিক অংশীদার (শ্রেণী-১)। মোট $count জনের জনপ্রতি অংশ $fractionDisplay।"
-                    } else {
-                        "স্বাভাবিক অংশীদার (শ্রেণী-১)। অংশ $fractionDisplay।"
-                    }
-
-                    if (id in femaleSapindas) {
-                        reasonText += "\nমন্তব্য (সপিণ্ড মহিলা): ${individualHeir.nameBn} একজন সপিণ্ড মহিলা। তিনি জীবনস্বত্বে (Life Interest) এই সম্পত্তির মালিক হবেন। তিনি এটি ভোগ দখল করতে পারবেন কিন্তু হস্তান্তর বা বিক্রি করতে পারবেন না। তবে বিধবা স্ত্রী অত্যন্ত অস্বচ্ছল বা বিশেষ প্রয়োজনে আদালতের মাধ্যমে জমি বিক্রি করতে পারেন। তাঁর মৃত্যুর পর এই সম্পত্তি পুনরায় মূল মৃত ব্যক্তির নিকটবর্তী জীবিত উত্তরাধিকারীদের নিকট ফিরে যাবে।"
-                    }
-
-                    results.add(HeirShare(
-                        heir = individualHeir,
-                        shareFraction = fractionDisplay,
-                        shareAmount = individualAmount,
-                        isHeir = true,
-                        reason = reasonText,
-                        count = 1
-                    ))
-                }
-            } else {
-                for (i in 1..count) {
-                    val individualHeir = if (count > 1) {
-                        Heir(
-                            id = "${heir.id}_$i",
-                            nameEn = "${getEnglishOrdinal(i)} ${heir.nameEn}",
-                            nameBn = "${getBengaliOrdinal(i)} ${heir.nameBn}",
+                            nameBn = if (heir.nameBn.startsWith("১ম ")) {
+                                heir.nameBn.replaceFirst("১ম ", "${getBengaliOrdinal(i)} ")
+                            } else {
+                                "${getBengaliOrdinal(i)} ${heir.nameBn}"
+                            },
                             priority = heir.priority,
                             category = heir.category
                         )
@@ -194,26 +287,43 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
         }
     } else {
         // Find the single highest priority (lowest rank index) selected heir
-        val sortedSelectedHeirs = selectedHeirs
+        // Special daughter exclusion rule: unmarried_daughter (Priority 5) excludes daughter_with_son (Priority 5)
+        val sortedCandidates = selectedHeirs
             .filter { it.value > 0 }
-            .map { entry -> allHeirs.first { it.id == entry.key } to entry.value }
-            .sortedBy { it.first.priority.toIntOrNull() ?: 999 }
+            .map { entry -> allHeirs.first { it.id == entry.key } }
+            .sortedBy { it.priority.toIntOrNull() ?: 999 }
 
-        if (sortedSelectedHeirs.isNotEmpty()) {
-            val (winningHeir, winningCount) = sortedSelectedHeirs.first()
+        if (sortedCandidates.isNotEmpty()) {
+            val hasUnmarried = (selectedHeirs["unmarried_daughter"] ?: 0) > 0
+            val hasDaughterWithSon = (selectedHeirs["daughter_with_son"] ?: 0) > 0
+
+            val winningId = if (hasUnmarried) {
+                "unmarried_daughter"
+            } else if (hasDaughterWithSon) {
+                "daughter_with_son"
+            } else {
+                sortedCandidates.first().id
+            }
+
+            val finalWinningHeir = allHeirs.first { it.id == winningId }
+            val winningCount = selectedHeirs[winningId] ?: 1
 
             for ((id, count) in selectedHeirs) {
                 val heir = allHeirs.first { it.id == id }
-                if (id == winningHeir.id) {
-                    val individualFraction = "1/$count"
-                    val individualAmount = propertyTotal / count
+                if (id == winningId) {
+                    val individualFraction = "1/$winningCount"
+                    val individualAmount = propertyTotal / winningCount
 
                     for (i in 1..count) {
                         val individualHeir = if (count > 1) {
                             Heir(
                                 id = "${heir.id}_$i",
                                 nameEn = "${getEnglishOrdinal(i)} ${heir.nameEn}",
-                                nameBn = "${getBengaliOrdinal(i)} ${heir.nameBn}",
+                                nameBn = if (heir.nameBn.startsWith("১ম ")) {
+                                    heir.nameBn.replaceFirst("১ম ", "${getBengaliOrdinal(i)} ")
+                                } else {
+                                    "${getBengaliOrdinal(i)} ${heir.nameBn}"
+                                },
                                 priority = heir.priority,
                                 category = heir.category
                             )
@@ -241,13 +351,23 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
                         ))
                     }
                 } else {
-                    val winningName = winningHeir.nameBn
+                    val winningName = finalWinningHeir.nameBn
+                    val reasonText = if (id == "daughter_with_son" && hasUnmarried) {
+                        "অবিবাহিতা কন্যার উপস্থিতির কারণে পুত্রবতী কন্যা অংশ বঞ্চিত।"
+                    } else {
+                        "নিকটবর্তী অগ্রাধিকারপ্রাপ্ত সপিণ্ড ($winningName) এর উপস্থিতির কারণে অংশ বঞ্চিত।"
+                    }
+
                     for (i in 1..count) {
                         val individualHeir = if (count > 1) {
                             Heir(
                                 id = "${heir.id}_$i",
                                 nameEn = "${getEnglishOrdinal(i)} ${heir.nameEn}",
-                                nameBn = "${getBengaliOrdinal(i)} ${heir.nameBn}",
+                                nameBn = if (heir.nameBn.startsWith("১ম ")) {
+                                    heir.nameBn.replaceFirst("১ম ", "${getBengaliOrdinal(i)} ")
+                                } else {
+                                    "${getBengaliOrdinal(i)} ${heir.nameBn}"
+                                },
                                 priority = heir.priority,
                                 category = heir.category
                             )
@@ -259,7 +379,7 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
                             shareFraction = "0",
                             shareAmount = 0.0,
                             isHeir = false,
-                            reason = "নিকটবর্তী অগ্রাধিকারপ্রাপ্ত সপিণ্ড ($winningName) এর উপস্থিতির কারণে অংশ বঞ্চিত।",
+                            reason = reasonText,
                             count = 1
                         ))
                     }
@@ -269,4 +389,82 @@ fun calculateDayabhagaShares(propertyTotal: Double, selectedHeirs: Map<String, I
     }
 
     return results.sortedWith(compareBy<HeirShare> { it.heir.priority.toIntOrNull() ?: 999 }.thenBy { it.heir.id })
+}
+
+private fun activePretestedSonsOrNormal(
+    activePredeceasedSons: List<PredeceasedSon>,
+    totalBranchesCount: Int,
+    branchAmount: Double,
+    branchFraction: String,
+    results: MutableList<HeirShare>
+) {
+    val femaleSapindas = setOf("widow", "predeceased_son_widow", "unmarried_daughter", "daughter_with_son", "mother", "paternal_grandmother", "paternal_great_grandmother")
+    activePredeceasedSons.forEachIndexed { idx, predSon ->
+        val wCount = predSon.widowCount
+        val gCount = predSon.grandsonCount
+        val totalSubShares = wCount + gCount
+        if (totalSubShares > 0) {
+            val individualAmount = branchAmount / totalSubShares
+            val fractionDisplay = if (totalSubShares > 1) "1/${totalBranchesCount * totalSubShares}" else branchFraction
+            val ordinalBn = getBengaliOrdinal(idx + 1)
+            val ordinalEn = getEnglishOrdinal(idx + 1)
+
+            // Add Predeceased Son's Widow(s)
+            if (wCount > 0) {
+                val baseHeir = allHeirs.first { it.id == "predeceased_son_widow" }
+                for (wi in 1..wCount) {
+                    val subOrdinalBn = if (wCount > 1) " (${getBengaliOrdinal(wi)} স্ত্রী)" else ""
+                    val subOrdinalEn = if (wCount > 1) " (${getEnglishOrdinal(wi)} Wife)" else ""
+                    val individualHeir = Heir(
+                        id = "predeceased_son_widow_${predSon.id}_$wi",
+                        nameEn = "$ordinalEn Predeceased Son's Widow$subOrdinalEn",
+                        nameBn = "$ordinalBn মৃত পুত্রের স্ত্রী (বিধবা)$subOrdinalBn",
+                        priority = baseHeir.priority,
+                        category = baseHeir.category
+                    )
+                    var reasonText = "মৃত পুত্রের উত্তরাধিকারী (প্রতিনিধিত্বের নীতি অনুসারে)। " +
+                            "$ordinalBn মৃত পুত্রের মোট প্রাপ্য অংশ $branchFraction, যা তাঁর $totalSubShares জন ওয়ারিশের (বিধবা ও পুত্র/পৌত্র) মধ্যে সমান ভাগে বণ্টিত হয়েছে। জনপ্রতি অংশ $fractionDisplay।"
+                    if (individualHeir.id in femaleSapindas || "predeceased_son_widow" in femaleSapindas) {
+                        reasonText += "\nমন্তব্য (সপিণ্ড মহিলা): ${individualHeir.nameBn} একজন সপিণ্ড মহিলা। তিনি জীবনস্বত্বে (Life Interest) এই সম্পত্তির মালিক হবেন। তিনি এটি ভোগ দখল করতে পারবেন কিন্তু হস্তান্তর বা বিক্রি করতে পারবেন না। তাঁর মৃত্যুর পর এই সম্পত্তি পুনরায় মূল মৃত ব্যক্তির নিকটবর্তী জীবিত উত্তরাধিকারীদের নিকট ফিরে যাবে।"
+                    }
+
+                    results.add(HeirShare(
+                        heir = individualHeir,
+                        shareFraction = fractionDisplay,
+                        shareAmount = individualAmount,
+                        isHeir = true,
+                        reason = reasonText,
+                        count = 1
+                    ))
+                }
+            }
+
+            // Add Predeceased Son's Son(s) / Grandsons
+            if (gCount > 0) {
+                val baseHeir = allHeirs.first { it.id == "grandson" }
+                for (gi in 1..gCount) {
+                    val subOrdinalBn = if (gCount > 1) " (${getBengaliOrdinal(gi)} পুত্র)" else ""
+                    val subOrdinalEn = if (gCount > 1) " (${getEnglishOrdinal(gi)} Son)" else ""
+                    val individualHeir = Heir(
+                        id = "grandson_${predSon.id}_$gi",
+                        nameEn = "$ordinalEn Predeceased Son's Son (Grandson)$subOrdinalEn",
+                        nameBn = "$ordinalBn মৃত পুত্রের পুত্র (পৌত্র)$subOrdinalBn",
+                        priority = baseHeir.priority,
+                        category = baseHeir.category
+                    )
+                    val reasonText = "মৃত পুত্রের উত্তরাধিকারী (প্রতিনিধিত্বের নীতি অনুসারে)। " +
+                            "$ordinalBn মৃত পুত্রের মোট প্রাপ্য অংশ $branchFraction, যা তাঁর $totalSubShares জন ওয়ারিশের (বিধবা ও পুত্র/পৌত্র) মধ্যে সমান ভাগে বণ্টিত হয়েছে। জনপ্রতি অংশ $fractionDisplay।"
+
+                    results.add(HeirShare(
+                        heir = individualHeir,
+                        shareFraction = fractionDisplay,
+                        shareAmount = individualAmount,
+                        isHeir = true,
+                        reason = reasonText,
+                        count = 1
+                    ))
+                }
+            }
+        }
+    }
 }

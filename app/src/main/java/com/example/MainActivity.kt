@@ -232,7 +232,8 @@ class MainActivity : ComponentActivity() {
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.d(TAG, "Interstitial ad failed to load: ${adError.message}")
+                    Log.e(TAG, "Interstitial ad failed to load: ${adError.message}. Code: ${adError.code}.")
+                    Log.d(TAG, "Troubleshooting AdMob: If this is a real device like Samsung A53, make sure to add the test device ID programmatically or verify in Logcat (search for 'Use RequestConfiguration.Builder().setTestDeviceIds') to find the device's hashed ID.")
                     mInterstitialAd = null
                 }
 
@@ -285,7 +286,8 @@ class MainActivity : ComponentActivity() {
             }
             .withAdListener(object : AdListener() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.e(TAG, "Native Ad failed to load: ${adError.message}")
+                    Log.e(TAG, "Native Ad failed to load: ${adError.message}. Code: ${adError.code}.")
+                    Log.d(TAG, "Troubleshooting AdMob: If this is a real device like Samsung A53, make sure to add the test device ID programmatically or verify in Logcat (search for 'Use RequestConfiguration.Builder().setTestDeviceIds') to find the device's hashed ID.")
                 }
             })
             .withNativeAdOptions(NativeAdOptions.Builder().build())

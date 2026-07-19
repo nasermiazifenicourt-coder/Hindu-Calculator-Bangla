@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
@@ -31,12 +32,75 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Brush
+
+fun getSapindaSerialNumberBn(heirId: String): String? {
+    return when (heirId) {
+        "son" -> "১"
+        "grandson" -> "২"
+        "great_grandson" -> "৩"
+        "widow" -> "৪"
+        "unmarried_daughter" -> null // "কন্যার সাথে সিরিয়াল আসবে, অবিবাহিত কন্যা বা পুত্রবতী কন্যার সাথে সিরিয়াল থাকবেনা।"
+        "daughter_with_son" -> null   // No serial number for these sub-types
+        "daughters_son" -> "৭"
+        "father" -> "৮"
+        "mother" -> "৯"
+        "brother" -> "১০"
+        "brothers_son" -> "১১"
+        "brothers_son_son" -> "১২"
+        "sisters_son" -> "১৩"
+        "paternal_grandfather" -> "১৪"
+        "paternal_grandmother" -> "১৫"
+        "paternal_uncle" -> "১৬"
+        "paternal_uncles_son" -> "১৭"
+        "paternal_uncles_son_son" -> "১৮"
+        "fathers_sisters_son" -> "১৯"
+        "paternal_great_grandfather" -> "২০"
+        "paternal_great_grandmother" -> "২১"
+        "paternal_great_uncle" -> "২২"
+        "paternal_great_uncles_son" -> "২৩"
+        "paternal_great_uncles_son_son" -> "২৪"
+        "fathers_fathers_sisters_son" -> "২৫"
+        "sons_daughters_son" -> "২৬"
+        "sons_sons_daughters_son" -> "২৭"
+        "brothers_daughter_son" -> "২৮"
+        "brothers_sons_daughters_son" -> "২৯"
+        "paternal_uncles_daughter_son" -> "৩০"
+        "paternal_uncles_sons_daughters_son" -> "৩১"
+        "paternal_great_uncles_daughter_son" -> "৩২"
+        "paternal_great_uncles_sons_daughters_son" -> "৩৩"
+        "maternal_grandfather" -> "৩৪"
+        "maternal_uncle" -> "৩৫"
+        "maternal_uncles_son" -> "৩৬"
+        "maternal_uncles_son_son" -> "৩৭"
+        "mothers_sisters_son" -> "৩৮"
+        "maternal_great_grandfather" -> "৩৯"
+        "maternal_great_uncle" -> "৪০"
+        "maternal_great_uncles_son" -> "৪১"
+        "mothers_fathers_sisters_son" -> "৪২"
+        "mothers_fathers_sisters_son_son" -> "৪৩"
+        "maternal_great_great_grandfather" -> "৪৪"
+        "maternal_great_great_uncle" -> "৪৫"
+        "maternal_great_great_uncles_son" -> "৪৬"
+        "maternal_great_great_uncles_son_son" -> "৪৭"
+        "mothers_fathers_fathers_sisters_son" -> "৪৮"
+        "maternal_uncles_daughter_son" -> "৪৯"
+        "maternal_uncles_sons_daughters_son" -> "৫০"
+        "maternal_great_uncles_daughter_son" -> "৫১"
+        "maternal_great_uncles_sons_daughters_son" -> "৫২"
+        "maternal_great_great_uncles_daughter_son" -> "৫৩"
+        "maternal_great_great_uncles_sons_daughters_son" -> "৫৪"
+        else -> null
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorScreen() {
     val context = LocalContext.current
-    var propertyInput by remember { mutableStateOf("100") }
+    var takaInput by remember { mutableStateOf("") }
+    var goldInput by remember { mutableStateOf("") }
+    var landInput by remember { mutableStateOf("") }
     var searchQuery by remember { mutableStateOf("") }
     
     // Maintain list of added heir IDs and their counts (quantities)
@@ -45,23 +109,70 @@ fun CalculatorScreen() {
     
     var showResults by remember { mutableStateOf(false) }
     var resultsList by remember { mutableStateOf<List<HeirShare>>(emptyList()) }
+    
+    // Multiple assets results holders
+    var takaResults by remember { mutableStateOf<List<HeirShare>>(emptyList()) }
+    var goldResults by remember { mutableStateOf<List<HeirShare>>(emptyList()) }
+    var landResults by remember { mutableStateOf<List<HeirShare>>(emptyList()) }
 
-    // Colors to match Dayabhaga branding
-    val primaryOrange = Color(0xFFE65100)
-    val lightOrange = Color(0xFFFFF3E0)
+    // Colors to match Dayabhaga branding and the requested dark green theme
+    val darkGreenBackground = Color(0xFF04140D)
+    val darkGreenCard = Color(0xFF0C2419)
+    val darkGreenBorder = Color(0xFF1B3D2B)
+    val textWhite = Color.White
+    val textSecondarySage = Color(0xFFA1B3A9)
+    val primaryOrange = Color(0xFFFF9800) // Vibrant orange to pop on dark green
+    val lightOrange = Color(0xFFFFE0B2)
+
+    var isOthersSectionExpanded by remember { mutableStateOf(false) }
+    var isGrandsonSelectedInSubBox by remember { mutableStateOf(false) }
+    var isSonSectionExpanded by remember { mutableStateOf(false) }
+    var isPredeceasedSonSectionExpanded by remember { mutableStateOf(false) }
+
+    val predeceasedSons = remember { mutableStateListOf(PredeceasedSon(id = 1)) }
+
+    val syncPredeceasedSons = {
+        val totalWidows = predeceasedSons.sumOf { it.widowCount }
+        val totalGrandsons = predeceasedSons.sumOf { it.grandsonCount }
+        
+        if (totalWidows > 0) {
+            selectedHeirCounts["predeceased_son_widow"] = totalWidows
+            if ("predeceased_son_widow" !in selectedHeirIds) {
+                selectedHeirIds.add("predeceased_son_widow")
+            }
+        } else {
+            selectedHeirCounts.remove("predeceased_son_widow")
+            selectedHeirIds.remove("predeceased_son_widow")
+        }
+        
+        if (totalGrandsons > 0) {
+            selectedHeirCounts["grandson"] = totalGrandsons
+            isGrandsonSelectedInSubBox = true
+            if ("grandson" !in selectedHeirIds) {
+                selectedHeirIds.add("grandson")
+            }
+        } else {
+            if (isGrandsonSelectedInSubBox) {
+                selectedHeirCounts.remove("grandson")
+                selectedHeirIds.remove("grandson")
+                isGrandsonSelectedInSubBox = false
+            }
+        }
+    }
 
     if (showResults) {
-        // Result Screen View
+        // Result Screen View in Dark Forest Green Theme
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF5F5F5))
+                .background(darkGreenBackground)
         ) {
             // Header back bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(darkGreenCard)
+                    .border(BorderStroke(1.dp, darkGreenBorder))
                     .padding(horizontal = 4.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -76,7 +187,7 @@ fun CalculatorScreen() {
                     text = "ফলাফল ও বণ্টন বিবরণী",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = textWhite
                 )
             }
 
@@ -87,11 +198,11 @@ fun CalculatorScreen() {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(resultsList) { share ->
+                itemsIndexed(resultsList) { index, share ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        colors = CardDefaults.cardColors(containerColor = darkGreenCard),
+                        border = BorderStroke(1.dp, darkGreenBorder)
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp)
@@ -107,7 +218,7 @@ fun CalculatorScreen() {
                                             text = share.heir.nameBn,
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color.Black
+                                            color = textWhite
                                         )
                                         if (share.count > 1) {
                                             Spacer(modifier = Modifier.width(8.dp))
@@ -128,39 +239,82 @@ fun CalculatorScreen() {
                                     Text(
                                         text = share.heir.nameEn,
                                         fontSize = 13.sp,
-                                        color = Color.Gray
+                                        color = textSecondarySage
                                     )
                                 }
                                 Column(horizontalAlignment = Alignment.End) {
                                     Text(
-                                        text = if (share.isHeir) {
-                                            String.format("%.1f", share.shareAmount)
-                                        } else "0",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.Black
+                                        text = "অনুপাত / Fraction:",
+                                        fontSize = 11.sp,
+                                        color = textSecondarySage
                                     )
                                     Text(
-                                        text = "UNITS OF TOTAL",
-                                        fontSize = 10.sp,
+                                        text = if (share.isHeir) share.shareFraction else "0",
+                                        fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.Gray
+                                        color = primaryOrange
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
 
-                            Text(
-                                text = if (share.isHeir && share.count > 1) {
-                                    "SHARE: ${share.shareFraction} (জনপ্রতি / per individual)"
-                                } else {
-                                    "SHARE: ${if (share.isHeir) share.shareFraction else "0"}"
-                                },
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = primaryOrange
-                            )
+                            // Calculate individual shares for each entered asset category
+                            val takaVal = takaResults.getOrNull(index)?.shareAmount ?: 0.0
+                            val goldVal = goldResults.getOrNull(index)?.shareAmount ?: 0.0
+                            val landVal = landResults.getOrNull(index)?.shareAmount ?: 0.0
+
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFF071C12), RoundedCornerShape(8.dp))
+                                    .border(1.dp, darkGreenBorder, RoundedCornerShape(8.dp))
+                                    .padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                if (takaInput.isNotEmpty()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("টাকা (Cash Taka):", fontSize = 12.sp, color = textSecondarySage)
+                                        Text(
+                                            text = "${String.format("%,.2f", if (share.isHeir) takaVal else 0.0)} টাকা",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = textWhite
+                                        )
+                                    }
+                                }
+                                if (goldInput.isNotEmpty()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("স্বর্ণ (Gold):", fontSize = 12.sp, color = textSecondarySage)
+                                        Text(
+                                            text = "${String.format("%.2f", if (share.isHeir) goldVal else 0.0)} ভরি",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = textWhite
+                                        )
+                                    }
+                                }
+                                if (landInput.isNotEmpty()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("জমি (Land):", fontSize = 12.sp, color = textSecondarySage)
+                                        Text(
+                                            text = "${String.format("%.2f", if (share.isHeir) landVal else 0.0)} শতক",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = textWhite
+                                        )
+                                    }
+                                }
+                            }
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -177,21 +331,21 @@ fun CalculatorScreen() {
                             LinearProgressIndicator(
                                 progress = { progressValue },
                                 modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(6.dp)
-                                        .clip(RoundedCornerShape(3.dp)),
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp)),
                                 color = primaryOrange,
-                                trackColor = Color(0xFFE0E0E0)
+                                trackColor = darkGreenBorder
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
 
                             // Helper notice block
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFFFAFAFA), RoundedCornerShape(8.dp))
-                                    .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF071C12), RoundedCornerShape(8.dp))
+                                    .border(1.dp, darkGreenBorder, RoundedCornerShape(8.dp))
                                     .padding(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -205,7 +359,7 @@ fun CalculatorScreen() {
                                 Text(
                                     text = share.reason,
                                     fontSize = 12.sp,
-                                    color = Color.DarkGray
+                                    color = textSecondarySage
                                 )
                             }
                         }
@@ -213,69 +367,98 @@ fun CalculatorScreen() {
                 }
 
                 item {
-                    // Black Container at bottom, now inside the scrollable LazyColumn
+                    // Dark Green totals container inside scrollable LazyColumn
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp, bottom = 16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
+                        colors = CardDefaults.cardColors(containerColor = darkGreenCard),
+                        border = BorderStroke(1.dp, darkGreenBorder),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(12.dp),
+                            modifier = Modifier.padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Row(
+                            Text(
+                                text = "মোট বণ্টিত সম্পদ (TOTAL DISTRIBUTED)",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textSecondarySage
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Column(
                                 modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .background(primaryOrange, CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Share,
-                                        contentDescription = "Distributed",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column {
-                                    Text(
-                                        text = "TOTAL DISTRIBUTED",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.LightGray
-                                    )
-                                    Row(verticalAlignment = Alignment.Bottom) {
+                                if (takaInput.isNotEmpty()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Default.Payments, "Taka", tint = primaryOrange, modifier = Modifier.size(18.dp))
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text("নগদ টাকা (Cash):", fontSize = 13.sp, color = textSecondarySage)
+                                        }
                                         Text(
-                                            text = propertyInput.ifEmpty { "0" },
-                                            fontSize = 20.sp,
+                                            text = "${String.format("%,.2f", takaInput.toDoubleOrNull() ?: 0.0)} টাকা",
+                                            fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color.White
+                                            color = textWhite
                                         )
-                                        Spacer(modifier = Modifier.width(4.dp))
+                                    }
+                                }
+                                if (goldInput.isNotEmpty()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Default.WorkspacePremium, "Gold", tint = primaryOrange, modifier = Modifier.size(18.dp))
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text("স্বর্ণালঙ্কার (Gold):", fontSize = 13.sp, color = textSecondarySage)
+                                        }
                                         Text(
-                                            text = "Units",
-                                            fontSize = 12.sp,
-                                            color = Color.LightGray,
-                                            modifier = Modifier.padding(bottom = 2.dp)
+                                            text = "${String.format("%.2f", goldInput.toDoubleOrNull() ?: 0.0)} ভরি",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = textWhite
+                                        )
+                                    }
+                                }
+                                if (landInput.isNotEmpty()) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Default.Landscape, "Land", tint = primaryOrange, modifier = Modifier.size(18.dp))
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text("স্থাবর জমি (Land):", fontSize = 13.sp, color = textSecondarySage)
+                                        }
+                                        Text(
+                                            text = "${String.format("%.2f", landInput.toDoubleOrNull() ?: 0.0)} শতক",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = textWhite
                                         )
                                     }
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             // Verification outline badge
                             Row(
                                 modifier = Modifier
                                     .background(Color.Transparent, RoundedCornerShape(8.dp))
-                                    .border(1.dp, Color(0xFF333333), RoundedCornerShape(8.dp))
+                                    .border(1.dp, primaryOrange.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center
@@ -297,8 +480,124 @@ fun CalculatorScreen() {
                                     Text(
                                         text = "Bangladesh Hindu Law Compliance",
                                         fontSize = 8.sp,
-                                        color = Color.Gray
+                                        color = textSecondarySage
                                     )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 16.dp),
+                        colors = CardDefaults.cardColors(containerColor = darkGreenCard),
+                        border = BorderStroke(1.dp, darkGreenBorder),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "হিসাবের ধাপ (Calculation Steps)",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = primaryOrange,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+
+                            // Principle Explanation
+                            Text(
+                                text = "উত্তরাধিকার বন্টনের মূলনীতি (দায়ভাগ আইন):",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textWhite
+                            )
+                            Text(
+                                text = "দায়ভাগ হিন্দু আইন অনুযায়ী উত্তরাধিকার মূলত পিণ্ডদান তত্ত্ব (Spiritual Benefit Doctrine) এবং রক্তের নৈকট্যের ভিত্তিতে নির্ধারিত হয়। নিকটবর্তী সপিণ্ড উত্তরাধিকারী উপস্থিত থাকলে দূরবর্তী উত্তরাধিকারীগণ সম্পূর্ণ বঞ্চিত হন।",
+                                fontSize = 12.sp,
+                                color = textSecondarySage,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                            )
+
+                            Spacer(modifier = Modifier.fillMaxWidth().height(1.dp).background(darkGreenBorder))
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Step 1: Class 1 validation
+                            val class1Ids = setOf("son", "grandson", "great_grandson", "widow", "predeceased_son_widow")
+                            val isClass1Active = selectedHeirCounts.filter { it.key in class1Ids && it.value > 0 }.isNotEmpty()
+
+                            Text(
+                                text = "ধাপ ১: শ্রেণী-১ (Class-I) উত্তরাধিকারী যাচাই",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textWhite
+                            )
+                            if (isClass1Active) {
+                                Text(
+                                    text = "শ্রেণী-১ উত্তরাধিকারীগণ (পুত্র, পৌত্র, প্রপৌত্র, বিধবা স্ত্রী, মৃত পুত্রের বিধবা স্ত্রী) সশরীরে বা প্রতিনিধিত্বে জীবিত আছেন। দায়ভাগ বিধি অনুযায়ী তারা সমহারে সম্পত্তির অংশীদার হবেন (একাধিক বিধবা স্ত্রী থাকলে তারা ১টি অংশ সমান ভাগে ভাগ করেন)। অন্যান্য দূরবর্তী উত্তরাধিকারীগণ সম্পূর্ণ বঞ্চিত হবেন।",
+                                    fontSize = 12.sp,
+                                    color = textSecondarySage,
+                                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                                )
+                            } else {
+                                Text(
+                                    text = "শ্রেণী-১ কোনো সপিণ্ড উত্তরাধিকারী জীবিত নেই। অতএব, সপিণ্ড অগ্রাধিকার তালিকার সর্বোচ্চ স্থানে থাকা জীবিত উত্তরাধিকারী বা উত্তরাধিকারীগণ সম্পূর্ণ সম্পত্তি লাভ করবেন এবং দূরবর্তী অন্যান্য সকলে বঞ্চিত হবেন।",
+                                    fontSize = 12.sp,
+                                    color = textSecondarySage,
+                                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.fillMaxWidth().height(1.dp).background(darkGreenBorder))
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Step 2: Distribution detail for each selected heir
+                            Text(
+                                text = "ধাপ ২: প্রতিটি উত্তরাধিকারীর অংশ বণ্টন বিবরণী",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = textWhite,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            resultsList.forEach { share ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFF071C12)),
+                                    border = BorderStroke(1.dp, darkGreenBorder),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(10.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = share.heir.nameBn,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = textWhite
+                                            )
+                                            Text(
+                                                text = if (share.isHeir) "প্রাপ্ত অংশ: ${share.shareFraction}" else "বঞ্চিত (অংশ: ০)",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (share.isHeir) primaryOrange else Color.Gray
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = share.reason,
+                                            fontSize = 11.sp,
+                                            color = textSecondarySage
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -307,605 +606,1279 @@ fun CalculatorScreen() {
             }
         }
     } else {
-        // Calculator Input Screen with Scrollable Layout to prevent collapse and support small screens
+        // Calculator Input Screen in custom premium Dark Forest Green theme, single scrollable flow
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(darkGreenBackground)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. Header & Property Input (Fixed, no scroll)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+            // CARD 1: ১. উত্তরাধিকারী নির্বাচন করুন (হিন্দু)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = darkGreenCard),
+                border = BorderStroke(1.dp, darkGreenBorder),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(lightOrange, RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
+                Column(
+                    modifier = Modifier.padding(16.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Calculate,
-                        contentDescription = "Input Information",
-                        tint = primaryOrange,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "তথ্য ইনপুট দিন",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "TOTAL PROPERTY (মোট সম্পত্তি কত?, শতাংশে বা টাকায় লিখুন)",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.DarkGray
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = propertyInput,
-                    onValueChange = { propertyInput = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(
-                            text = "100",
-                            color = Color(0xFF222222), // Deep black/charcoal placeholder
-                            fontWeight = FontWeight.Black,
-                            fontSize = 14.sp
-                        )
-                    },
-                    textStyle = TextStyle(
-                        color = Color.Black, // High contrast entered text
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    trailingIcon = {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .background(Color(0xFFEFEFEF))
-                                .padding(horizontal = 12.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "UNITS (টাকা বা জমি শতক)",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Black,
-                                color = Color(0xFF111111)
-                            )
-                        }
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black,
-                        focusedPlaceholderColor = Color(0xFF222222),
-                        unfocusedPlaceholderColor = Color(0xFF222222),
-                        focusedBorderColor = primaryOrange,
-                        unfocusedBorderColor = primaryOrange, // Vivid orange border to highlight beautifully
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
-                    ),
-                    singleLine = true,
-                    shape = RoundedCornerShape(8.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 2. Search & All 53 Heirs Selection List (Fixed Height Scrollable Box to prevent collapse, increased to 380dp for better visibility)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(380.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search icon",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "উত্তরাধিকার তালিকা (৫৩ জন সপিণ্ড থেকে খুঁজুন)",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.DarkGray
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(
-                            text = "যেমন: কন্যা, পুত্র, Widow (লিখে সপিণ্ড খুঁজুন)...",
-                            color = Color(0xFF555555), // Solid dark gray placeholder
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
-                        )
-                    },
-                    textStyle = TextStyle(
-                        color = Color.Black, // High contrast black entered text
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black,
-                        focusedPlaceholderColor = Color(0xFF555555),
-                        unfocusedPlaceholderColor = Color(0xFF555555),
-                        focusedBorderColor = primaryOrange,
-                        unfocusedBorderColor = primaryOrange.copy(alpha = 0.5f), // Soft visible orange border
-                        focusedContainerColor = Color.White,
-                        unfocusedContainerColor = Color.White
-                    ),
-                    singleLine = true,
-                    shape = RoundedCornerShape(8.dp)
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Scrollable container for the list of 53 heirs
-                val filteredHeirs = allHeirs.filter { heir ->
-                    heir.nameEn.contains(searchQuery, ignoreCase = true) ||
-                            heir.nameBn.contains(searchQuery, ignoreCase = true)
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp))
-                        .background(Color(0xFFFAFAFA))
-                        .padding(4.dp)
-                ) {
-                    if (filteredHeirs.isNotEmpty()) {
-                        val heirsScrollState = rememberScrollState()
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .verticalScroll(heirsScrollState),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            filteredHeirs.forEach { heir ->
-                                val count = selectedHeirCounts[heir.id] ?: 0
-                                HeirSelectionRow(
-                                    heir = heir,
-                                    count = count,
-                                    onAdd = {
-                                        if (heir.id !in selectedHeirIds) {
-                                            selectedHeirIds.add(heir.id)
-                                        }
-                                        selectedHeirCounts[heir.id] = (selectedHeirCounts[heir.id] ?: 0) + 1
-                                        Toast.makeText(
-                                            context,
-                                            "${heir.nameBn} যোগ করা হয়েছে।",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    },
-                                    primaryOrange = primaryOrange,
-                                    lightOrange = lightOrange
-                                )
-                            }
-                        }
-                    } else {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = if (searchQuery.isNotEmpty()) "কোনো উত্তরাধিকারী পাওয়া যায়নি।" else "সব উত্তরাধিকারী যোগ করা হয়েছে।",
-                                fontSize = 12.sp,
-                                color = Color.Gray
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 3. Selected Heirs List - Dynamically expanding to keep Calculate button right below it without nested scrolls
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFFFF3E0), RoundedCornerShape(8.dp))
-                        .border(1.dp, Color(0xFFFFB74D), RoundedCornerShape(8.dp))
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.People,
-                            contentDescription = "Selected Heirs",
-                            tint = Color(0xFFE65100),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "নির্বাচিত উত্তরাধিকারী ও সংখ্যা",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFE65100)
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .background(Color(0xFFE65100), RoundedCornerShape(6.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    // Header Row with Circular Badge
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        val totalSelectedCount = selectedHeirCounts.values.sum()
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .background(primaryOrange, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "১",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "$totalSelectedCount জন নির্বাচিত",
-                            fontSize = 11.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            text = "উত্তরাধিকারী নির্বাচন করুন (হিন্দু)",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textWhite
                         )
                     }
-                }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, Color(0xFFEEEEEE), RoundedCornerShape(8.dp))
-                        .background(Color(0xFFFCFCFC))
-                        .padding(6.dp)
-                ) {
-                    if (selectedHeirIds.isEmpty()) {
-                        Box(
+                    // Search field for searching across all 53 heirs
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = {
+                            Text(
+                                text = "যেমন: কন্যা, পুত্র, Widow (লিখে সপিণ্ড খুঁজুন)...",
+                                color = textSecondarySage,
+                                fontSize = 13.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = textSecondarySage,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        textStyle = TextStyle(
+                            color = textWhite,
+                            fontSize = 14.sp
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = textWhite,
+                            unfocusedTextColor = textWhite,
+                            focusedBorderColor = primaryOrange,
+                            unfocusedBorderColor = darkGreenBorder,
+                            focusedContainerColor = Color(0xFF071C12),
+                            unfocusedContainerColor = Color(0xFF071C12)
+                        ),
+                        singleLine = true,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (searchQuery.isEmpty()) {
+                        // SECTION 1: পুত্র, অধস্তন বংশধর এবং স্ত্রী
+                        CategoryHeader(title = "১. পুত্র, অধস্তন বংশধর এবং স্ত্রী", primaryOrange = primaryOrange)
+
+                        // 1. পুত্র (Son) [Collapsible nested wrapper at the very top]
+                        val sonHeir = allHeirs.first { it.id == "son" }
+                        val sonCount = selectedHeirCounts["son"] ?: 0
+                        val subWidowCount = selectedHeirCounts["predeceased_son_widow"] ?: 0
+                        val subGsCount = selectedHeirCounts["grandson"] ?: 0
+
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 24.dp),
-                            contentAlignment = Alignment.Center
+                                .padding(vertical = 4.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (sonCount > 0 || subWidowCount > 0 || (isGrandsonSelectedInSubBox && subGsCount > 0)) {
+                                    Color(0xFF143B28)
+                                } else darkGreenCard
+                            ),
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = if (sonCount > 0 || subWidowCount > 0 || (isGrandsonSelectedInSubBox && subGsCount > 0)) {
+                                    primaryOrange
+                                } else darkGreenBorder
+                            ),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { isSonSectionExpanded = !isSonSectionExpanded }
+                                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Column {
+                                            Text(
+                                                text = "১. পুত্র",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = textWhite
+                                            )
+                                            Text(
+                                                text = "Son (ক্লিক করে বিস্তারিত দেখুন)",
+                                                fontSize = 11.sp,
+                                                color = textSecondarySage
+                                            )
+                                        }
+                                    }
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        if (sonCount > 0) {
+                                            Surface(
+                                                color = primaryOrange,
+                                                shape = RoundedCornerShape(10.dp)
+                                            ) {
+                                                Text(
+                                                    text = "পুত্র: $sonCount",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color.White,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                        if (subWidowCount > 0 || (isGrandsonSelectedInSubBox && subGsCount > 0)) {
+                                            Surface(
+                                                color = Color(0xFFFF9800),
+                                                shape = RoundedCornerShape(10.dp)
+                                            ) {
+                                                Text(
+                                                    text = "মৃত পুত্র ওয়ারিশ",
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color.Black,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                        Icon(
+                                            imageVector = if (isSonSectionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                            contentDescription = "Toggle",
+                                            tint = primaryOrange
+                                        )
+                                    }
+                                }
+
+                                AnimatedVisibility(visible = isSonSectionExpanded) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color(0xFF071C12))
+                                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        HeirCounterRow(
+                                            heir = sonHeir.copy(nameBn = "পুত্র (পিতা মৃত সময় জীবিত)", nameEn = "Son (Living at father's death)"),
+                                            count = sonCount,
+                                            onIncrement = {
+                                                if ("son" !in selectedHeirIds) selectedHeirIds.add("son")
+                                                selectedHeirCounts["son"] = sonCount + 1
+                                            },
+                                            onDecrement = {
+                                                if (sonCount > 1) {
+                                                    selectedHeirCounts["son"] = sonCount - 1
+                                                } else {
+                                                    selectedHeirCounts.remove("son")
+                                                    selectedHeirIds.remove("son")
+                                                }
+                                            },
+                                            primaryOrange = primaryOrange,
+                                            lightOrange = lightOrange,
+                                            serialNo = null
+                                        )
+
+                                        val isSubGrandsonEntered = predeceasedSons.any { it.grandsonCount > 0 }
+                                        val isMainListActive = (!isGrandsonSelectedInSubBox && (selectedHeirCounts["grandson"] ?: 0) > 0) || (selectedHeirCounts["great_grandson"] ?: 0) > 0
+
+                                        Card(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = if (predeceasedSons.any { it.widowCount > 0 || it.grandsonCount > 0 }) {
+                                                    Color(0xFF24150E)
+                                                } else darkGreenCard
+                                            ),
+                                            border = BorderStroke(
+                                                width = 1.dp,
+                                                color = if (predeceasedSons.any { it.widowCount > 0 || it.grandsonCount > 0 }) {
+                                                    Color(0xFF8D6E63)
+                                                } else darkGreenBorder
+                                            ),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Column(modifier = Modifier.fillMaxWidth()) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clickable { isPredeceasedSonSectionExpanded = !isPredeceasedSonSectionExpanded }
+                                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Column {
+                                                        Text(
+                                                            text = "মৃত পুত্র (পিতা মৃত্যুর আগে মৃত)",
+                                                            fontSize = 13.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = Color(0xFFD7CCC8)
+                                                        )
+                                                        Text(
+                                                            text = "Predeceased Son (ক্লিক করে ওয়ারিশ যুক্ত করুন)",
+                                                            fontSize = 10.sp,
+                                                            color = textSecondarySage
+                                                        )
+                                                    }
+                                                    Icon(
+                                                        imageVector = if (isPredeceasedSonSectionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                                        contentDescription = "Toggle Sub-heirs",
+                                                        tint = Color(0xFFD7CCC8),
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                }
+
+                                                AnimatedVisibility(visible = isPredeceasedSonSectionExpanded) {
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .background(Color(0xFF1E130F))
+                                                            .padding(10.dp),
+                                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                                    ) {
+                                                        predeceasedSons.forEachIndexed { index, predSon ->
+                                                            val ordinalBn = getBengaliOrdinal(index + 1)
+                                                            Card(
+                                                                modifier = Modifier
+                                                                    .fillMaxWidth()
+                                                                    .padding(vertical = 4.dp),
+                                                                colors = CardDefaults.cardColors(
+                                                                    containerColor = if (predSon.widowCount > 0 || predSon.grandsonCount > 0) {
+                                                                        Color(0xFF2D1E18)
+                                                                    } else Color(0xFF160D0A)
+                                                                ),
+                                                                border = BorderStroke(
+                                                                    width = 1.dp,
+                                                                    color = if (predSon.widowCount > 0 || predSon.grandsonCount > 0) {
+                                                                        Color(0xFF8D6E63)
+                                                                    } else Color(0xFF3E2723)
+                                                                ),
+                                                                shape = RoundedCornerShape(8.dp)
+                                                            ) {
+                                                                Column(modifier = Modifier.fillMaxWidth().padding(10.dp)) {
+                                                                    Row(
+                                                                        modifier = Modifier.fillMaxWidth(),
+                                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                                        verticalAlignment = Alignment.CenterVertically
+                                                                    ) {
+                                                                        Text(
+                                                                            text = "------ $ordinalBn মৃত পুত্রের ওয়ারিশ ------",
+                                                                            fontSize = 12.sp,
+                                                                            fontWeight = FontWeight.Bold,
+                                                                            color = Color(0xFFD7CCC8)
+                                                                        )
+                                                                        if (predeceasedSons.size > 1) {
+                                                                            IconButton(
+                                                                                onClick = {
+                                                                                    predeceasedSons.removeAt(index)
+                                                                                    syncPredeceasedSons()
+                                                                                },
+                                                                                modifier = Modifier.size(24.dp),
+                                                                                enabled = !isMainListActive
+                                                                            ) {
+                                                                                Icon(
+                                                                                    imageVector = Icons.Default.Delete,
+                                                                                    contentDescription = "Remove Predeceased Son",
+                                                                                    tint = if (isMainListActive) Color.Gray else Color.Red,
+                                                                                    modifier = Modifier.size(16.dp)
+                                                                                )
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    Spacer(modifier = Modifier.height(6.dp))
+
+                                                                    // Widow counter
+                                                                    val subWidowHeir = allHeirs.first { it.id == "predeceased_son_widow" }
+                                                                    HeirCounterRow(
+                                                                        heir = subWidowHeir.copy(nameBn = "স্ত্রী (বিধবা)", nameEn = "Widow of predeceased son"),
+                                                                        count = predSon.widowCount,
+                                                                        enabled = !isMainListActive,
+                                                                        disabledMessage = "মেইন লিস্টে পৌত্র/প্রপৌত্র এন্টি থাকায় লকড",
+                                                                        onIncrement = {
+                                                                            predeceasedSons[index] = predSon.copy(widowCount = predSon.widowCount + 1)
+                                                                            syncPredeceasedSons()
+                                                                        },
+                                                                        onDecrement = {
+                                                                            if (predSon.widowCount > 0) {
+                                                                                predeceasedSons[index] = predSon.copy(widowCount = predSon.widowCount - 1)
+                                                                                syncPredeceasedSons()
+                                                                            }
+                                                                        },
+                                                                        primaryOrange = primaryOrange,
+                                                                        lightOrange = lightOrange,
+                                                                        serialNo = null
+                                                                    )
+
+                                                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                                                    // Grandson counter
+                                                                    val subGsHeir = allHeirs.first { it.id == "grandson" }
+                                                                    HeirCounterRow(
+                                                                        heir = subGsHeir.copy(nameBn = "পুত্র (পৌত্র)", nameEn = "Son (Grandson)"),
+                                                                        count = predSon.grandsonCount,
+                                                                        enabled = !isMainListActive,
+                                                                        disabledMessage = "মেইন লিস্টে পৌত্র/প্রপৌত্র এন্টি থাকায় লকড",
+                                                                        onIncrement = {
+                                                                            predeceasedSons[index] = predSon.copy(grandsonCount = predSon.grandsonCount + 1)
+                                                                            syncPredeceasedSons()
+                                                                        },
+                                                                        onDecrement = {
+                                                                            if (predSon.grandsonCount > 0) {
+                                                                                predeceasedSons[index] = predSon.copy(grandsonCount = predSon.grandsonCount - 1)
+                                                                                syncPredeceasedSons()
+                                                                            }
+                                                                        },
+                                                                        primaryOrange = primaryOrange,
+                                                                        lightOrange = lightOrange,
+                                                                        serialNo = null
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+
+                                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                                        Button(
+                                                            onClick = {
+                                                                val nextId = if (predeceasedSons.isEmpty()) 1 else predeceasedSons.maxOf { it.id } + 1
+                                                                predeceasedSons.add(PredeceasedSon(id = nextId))
+                                                                syncPredeceasedSons()
+                                                            },
+                                                            modifier = Modifier.fillMaxWidth().height(40.dp),
+                                                            colors = ButtonDefaults.buttonColors(
+                                                                containerColor = Color(0xFF3E2723),
+                                                                disabledContainerColor = Color(0xFF1C1210)
+                                                            ),
+                                                            enabled = !isMainListActive,
+                                                            shape = RoundedCornerShape(8.dp)
+                                                        ) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Add,
+                                                                contentDescription = "Add Predeceased Son",
+                                                                tint = if (isMainListActive) Color.Gray else Color.White,
+                                                                modifier = Modifier.size(16.dp)
+                                                            )
+                                                            Spacer(modifier = Modifier.width(6.dp))
+                                                            Text(
+                                                                text = "মৃত পুত্র যোগ করুন (Add Predeceased Son)",
+                                                                fontSize = 12.sp,
+                                                                color = if (isMainListActive) Color.Gray else Color.White,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // 2. পৌত্র (মৃত পুত্রের পুত্র) [Main List, Serialized '২']
+                        val isSubActive = predeceasedSons.any { it.widowCount > 0 || it.grandsonCount > 0 }
+                        val gsHeir = allHeirs.first { it.id == "grandson" }
+                        val gsCount = selectedHeirCounts["grandson"] ?: 0
+                        HeirCounterRow(
+                            heir = gsHeir.copy(nameBn = "পৌত্র (মৃত পুত্রের পুত্র)", nameEn = "Grandson (Son's Son)"),
+                            count = if (!isGrandsonSelectedInSubBox) gsCount else 0,
+                            onIncrement = {
+                                isGrandsonSelectedInSubBox = false
+                                if ("grandson" !in selectedHeirIds) selectedHeirIds.add("grandson")
+                                selectedHeirCounts["grandson"] = (if (!isGrandsonSelectedInSubBox) gsCount else 0) + 1
+                            },
+                            onDecrement = {
+                                val current = if (!isGrandsonSelectedInSubBox) gsCount else 0
+                                if (current > 1) {
+                                    selectedHeirCounts["grandson"] = current - 1
+                                } else {
+                                    selectedHeirCounts.remove("grandson")
+                                    selectedHeirIds.remove("grandson")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            enabled = !isSubActive,
+                            disabledMessage = if (isSubActive) "মৃত পুত্রের ওয়ারিশ বক্সে ডাটা থাকায় লকড" else null,
+                            serialNo = "২"
+                        )
+
+                        // 3. প্রপৌত্র (মৃত পুত্রের পুত্রের পুত্র) [Serialized '৩']
+                        val ggsHeir = allHeirs.first { it.id == "great_grandson" }
+                        val ggsCount = selectedHeirCounts["great_grandson"] ?: 0
+                        HeirCounterRow(
+                            heir = ggsHeir,
+                            count = ggsCount,
+                            onIncrement = {
+                                if ("great_grandson" !in selectedHeirIds) selectedHeirIds.add("great_grandson")
+                                selectedHeirCounts["great_grandson"] = ggsCount + 1
+                            },
+                            onDecrement = {
+                                if (ggsCount > 1) {
+                                    selectedHeirCounts["great_grandson"] = ggsCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("great_grandson")
+                                    selectedHeirIds.remove("great_grandson")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            enabled = !isSubActive,
+                            disabledMessage = if (isSubActive) "মৃত পুত্রের ওয়ারিশ বক্সে ডাটা থাকায় লকড" else null,
+                            serialNo = "৩"
+                        )
+
+                        // 4. বিধবা স্ত্রী (জীবনস্বত্ব) [Serialized '৪' - in 4th place!]
+                        val widowHeir = allHeirs.first { it.id == "widow" }
+                        val widowCount = selectedHeirCounts["widow"] ?: 0
+                        HeirCounterRow(
+                            heir = widowHeir.copy(nameBn = "বিধবা স্ত্রী (জীবনস্বত্ব)"),
+                            count = widowCount,
+                            onIncrement = {
+                                if ("widow" !in selectedHeirIds) selectedHeirIds.add("widow")
+                                selectedHeirCounts["widow"] = widowCount + 1
+                            },
+                            onDecrement = {
+                                if (widowCount > 1) {
+                                    selectedHeirCounts["widow"] = widowCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("widow")
+                                    selectedHeirIds.remove("widow")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = "৪"
+                        )
+
+                        // SECTION 2: কন্যা [Serialized '৫' for Section 2 title]
+                        CategoryHeader(title = "৫. কন্যা", primaryOrange = primaryOrange)
+
+                        // 1. অবিবাহিতা কন্যা
+                        val udHeir = allHeirs.first { it.id == "unmarried_daughter" }
+                        val udCount = selectedHeirCounts["unmarried_daughter"] ?: 0
+                        HeirCounterRow(
+                            heir = udHeir,
+                            count = udCount,
+                            onIncrement = {
+                                if ("unmarried_daughter" !in selectedHeirIds) selectedHeirIds.add("unmarried_daughter")
+                                selectedHeirCounts["unmarried_daughter"] = udCount + 1
+                            },
+                            onDecrement = {
+                                if (udCount > 1) {
+                                    selectedHeirCounts["unmarried_daughter"] = udCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("unmarried_daughter")
+                                    selectedHeirIds.remove("unmarried_daughter")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = null // No serial number as per request
+                        )
+
+                        // 2. বিবাহিতা পুত্রবতী কন্যা
+                        val dwsHeir = allHeirs.first { it.id == "daughter_with_son" }
+                        val dwsCount = selectedHeirCounts["daughter_with_son"] ?: 0
+                        HeirCounterRow(
+                            heir = dwsHeir.copy(nameBn = "পুত্রবতী কন্যা"),
+                            count = dwsCount,
+                            onIncrement = {
+                                if ("daughter_with_son" !in selectedHeirIds) selectedHeirIds.add("daughter_with_son")
+                                selectedHeirCounts["daughter_with_son"] = dwsCount + 1
+                            },
+                            onDecrement = {
+                                if (dwsCount > 1) {
+                                    selectedHeirCounts["daughter_with_son"] = dwsCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("daughter_with_son")
+                                    selectedHeirIds.remove("daughter_with_son")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = null // No serial number as per request
+                        )
+
+                        // 3. কন্যার পুত্র [Serialized '৭']
+                        val dsHeir = allHeirs.first { it.id == "daughters_son" }
+                        val dsCount = selectedHeirCounts["daughters_son"] ?: 0
+                        HeirCounterRow(
+                            heir = dsHeir,
+                            count = dsCount,
+                            onIncrement = {
+                                if ("daughters_son" !in selectedHeirIds) selectedHeirIds.add("daughters_son")
+                                selectedHeirCounts["daughters_son"] = dsCount + 1
+                            },
+                            onDecrement = {
+                                if (dsCount > 1) {
+                                    selectedHeirCounts["daughters_son"] = dsCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("daughters_son")
+                                    selectedHeirIds.remove("daughters_son")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = "৭"
+                        )
+
+                        // SECTION 3: পিতা-মাতা এবং উর্ধ্বতন
+                        CategoryHeader(title = "পিতা-মাতা এবং উর্ধ্বতন", primaryOrange = primaryOrange)
+
+                        // 1. পিতা
+                        val fatherHeir = allHeirs.first { it.id == "father" }
+                        val fatherCount = selectedHeirCounts["father"] ?: 0
+                        HeirCounterRow(
+                            heir = fatherHeir,
+                            count = fatherCount,
+                            onIncrement = {
+                                if ("father" !in selectedHeirIds) selectedHeirIds.add("father")
+                                selectedHeirCounts["father"] = fatherCount + 1
+                            },
+                            onDecrement = {
+                                if (fatherCount > 1) {
+                                    selectedHeirCounts["father"] = fatherCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("father")
+                                    selectedHeirIds.remove("father")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = "৮"
+                        )
+
+                        // 2. মাতা (জীবনস্বত্ব)
+                        val motherHeir = allHeirs.first { it.id == "mother" }
+                        val motherCount = selectedHeirCounts["mother"] ?: 0
+                        HeirCounterRow(
+                            heir = motherHeir.copy(nameBn = "মাতা (জীবনস্বত্ব)"),
+                            count = motherCount,
+                            onIncrement = {
+                                if ("mother" !in selectedHeirIds) selectedHeirIds.add("mother")
+                                selectedHeirCounts["mother"] = motherCount + 1
+                            },
+                            onDecrement = {
+                                if (motherCount > 1) {
+                                    selectedHeirCounts["mother"] = motherCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("mother")
+                                    selectedHeirIds.remove("mother")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = "৯"
+                        )
+
+                        // 3. পিতামহ (দাদা)
+                        val pgHeir = allHeirs.first { it.id == "paternal_grandfather" }
+                        val pgCount = selectedHeirCounts["paternal_grandfather"] ?: 0
+                        HeirCounterRow(
+                            heir = pgHeir.copy(nameBn = "পিতামহ (দাদা)", nameEn = "Paternal Grandfather"),
+                            count = pgCount,
+                            onIncrement = {
+                                if ("paternal_grandfather" !in selectedHeirIds) selectedHeirIds.add("paternal_grandfather")
+                                selectedHeirCounts["paternal_grandfather"] = pgCount + 1
+                            },
+                            onDecrement = {
+                                if (pgCount > 1) {
+                                    selectedHeirCounts["paternal_grandfather"] = pgCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("paternal_grandfather")
+                                    selectedHeirIds.remove("paternal_grandfather")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = "১৪"
+                        )
+
+                        // 4. পিতামহী (দাদী)
+                        val pgmHeir = allHeirs.first { it.id == "paternal_grandmother" }
+                        val pgmCount = selectedHeirCounts["paternal_grandmother"] ?: 0
+                        HeirCounterRow(
+                            heir = pgmHeir.copy(nameBn = "পিতামহী (দাদী)", nameEn = "Paternal Grandmother"),
+                            count = pgmCount,
+                            onIncrement = {
+                                if ("paternal_grandmother" !in selectedHeirIds) selectedHeirIds.add("paternal_grandmother")
+                                selectedHeirCounts["paternal_grandmother"] = pgmCount + 1
+                            },
+                            onDecrement = {
+                                if (pgmCount > 1) {
+                                    selectedHeirCounts["paternal_grandmother"] = pgmCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("paternal_grandmother")
+                                    selectedHeirIds.remove("paternal_grandmother")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = "১৫"
+                        )
+
+                        // SECTION 4: ভাই-বোন
+                        CategoryHeader(title = "ভাই-বোন", primaryOrange = primaryOrange)
+
+                        // 1. সহোদর ভাই
+                        val brotherHeir = allHeirs.first { it.id == "brother" }
+                        val brotherCount = selectedHeirCounts["brother"] ?: 0
+                        HeirCounterRow(
+                            heir = brotherHeir.copy(nameBn = "সহোদর ভাই"),
+                            count = brotherCount,
+                            onIncrement = {
+                                if ("brother" !in selectedHeirIds) selectedHeirIds.add("brother")
+                                selectedHeirCounts["brother"] = brotherCount + 1
+                            },
+                            onDecrement = {
+                                if (brotherCount > 1) {
+                                    selectedHeirCounts["brother"] = brotherCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("brother")
+                                    selectedHeirIds.remove("brother")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = "১০"
+                        )
+
+                        // 2. সহোদর ভাইয়ের পুত্র
+                        val bsHeir = allHeirs.first { it.id == "brothers_son" }
+                        val bsCount = selectedHeirCounts["brothers_son"] ?: 0
+                        HeirCounterRow(
+                            heir = bsHeir.copy(nameBn = "সহোদর ভাইয়ের পুত্র"),
+                            count = bsCount,
+                            onIncrement = {
+                                if ("brothers_son" !in selectedHeirIds) selectedHeirIds.add("brothers_son")
+                                selectedHeirCounts["brothers_son"] = bsCount + 1
+                            },
+                            onDecrement = {
+                                if (bsCount > 1) {
+                                    selectedHeirCounts["brothers_son"] = bsCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("brothers_son")
+                                    selectedHeirIds.remove("brothers_son")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = "১১"
+                        )
+
+                        // 3. সহোদর বোনের পুত্র
+                        val sisSonHeir = allHeirs.first { it.id == "sisters_son" }
+                        val sisSonCount = selectedHeirCounts["sisters_son"] ?: 0
+                        HeirCounterRow(
+                            heir = sisSonHeir.copy(nameBn = "সহোদর বোনের পুত্র", nameEn = "Sister's Son"),
+                            count = sisSonCount,
+                            onIncrement = {
+                                if ("sisters_son" !in selectedHeirIds) selectedHeirIds.add("sisters_son")
+                                selectedHeirCounts["sisters_son"] = sisSonCount + 1
+                            },
+                            onDecrement = {
+                                if (sisSonCount > 1) {
+                                    selectedHeirCounts["sisters_son"] = sisSonCount - 1
+                                } else {
+                                    selectedHeirCounts.remove("sisters_son")
+                                    selectedHeirIds.remove("sisters_son")
+                                }
+                            },
+                            primaryOrange = primaryOrange,
+                            lightOrange = lightOrange,
+                            serialNo = "১৩"
+                        )
+
+                        // SECTION 5: অন্যান্য সপিণ্ড উত্তরাধিকারীগণ (Other Heirs) - Collapsible
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isOthersSectionExpanded = !isOthersSectionExpanded },
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
+                            border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Groups,
+                                        contentDescription = "Other heirs",
+                                        tint = Color.Gray
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "অন্যান্য সপিণ্ড উত্তরাধিকারীগণ (Other Heirs)",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = Color.DarkGray
+                                    )
+                                }
                                 Icon(
-                                    imageVector = Icons.Default.PersonAdd,
-                                    contentDescription = "No heirs",
-                                    tint = Color.LightGray,
-                                    modifier = Modifier.size(36.dp)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "উত্তরাধিকারীর পাশে (+) এ ক্লিক করে যোগ করুন",
-                                    fontSize = 12.sp,
-                                    color = Color.Gray
+                                    imageVector = if (isOthersSectionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = "Toggle",
+                                    tint = Color.Gray
                                 )
                             }
                         }
-                    } else {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            selectedHeirIds.toList().forEach { id ->
-                                val heir = allHeirs.firstOrNull { it.id == id }
-                                if (heir != null) {
-                                    val count = selectedHeirCounts[id] ?: 1
-                                    SelectedHeirCard(
-                                        heir = heir,
+
+                        if (isOthersSectionExpanded) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 8.dp)
+                                    .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
+                                    .background(Color.White)
+                                    .padding(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                val majorIds = setOf(
+                                    "widow", "son", "predeceased_son_widow", "grandson", "great_grandson",
+                                    "unmarried_daughter", "daughter_with_son", "daughters_son",
+                                    "father", "mother", "paternal_grandfather", "paternal_grandmother",
+                                    "brother", "brothers_son", "sisters_son"
+                                )
+                                allHeirs.filter { it.id !in majorIds }.forEach { otherHeir ->
+                                    val count = selectedHeirCounts[otherHeir.id] ?: 0
+                                    val priorityVal = otherHeir.priority.toIntOrNull() ?: 1
+                                    val sVal = priorityVal + 1
+                                    val bengaliDigits = mapOf(
+                                        '0' to '০', '1' to '১', '2' to '২', '3' to '৩', '4' to '৪',
+                                        '5' to '৫', '6' to '৬', '7' to '৭', '8' to '৮', '9' to '৯'
+                                    )
+                                    val serialBn = sVal.toString().map { char -> bengaliDigits[char] ?: char }.joinToString("")
+
+                                    HeirCounterRow(
+                                        heir = otherHeir,
                                         count = count,
                                         onIncrement = {
-                                            selectedHeirCounts[id] = count + 1
+                                            if (otherHeir.id !in selectedHeirIds) selectedHeirIds.add(otherHeir.id)
+                                            selectedHeirCounts[otherHeir.id] = count + 1
                                         },
                                         onDecrement = {
                                             if (count > 1) {
-                                                selectedHeirCounts[id] = count - 1
+                                                selectedHeirCounts[otherHeir.id] = count - 1
                                             } else {
-                                                selectedHeirCounts.remove(id)
-                                                selectedHeirIds.remove(id)
-                                                Toast.makeText(
-                                                    context,
-                                                    "${heir.nameBn} বাদ দেওয়া হয়েছে।",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
+                                                selectedHeirCounts.remove(otherHeir.id)
+                                                selectedHeirIds.remove(otherHeir.id)
                                             }
                                         },
-                                        onDelete = {
-                                            selectedHeirCounts.remove(id)
-                                            selectedHeirIds.remove(id)
-                                            Toast.makeText(
-                                                context,
-                                                "${heir.nameBn} বাদ দেওয়া হয়েছে।",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        },
-                                        primaryOrange = primaryOrange
+                                        primaryOrange = primaryOrange,
+                                        lightOrange = lightOrange,
+                                        serialNo = serialBn
                                     )
                                 }
                             }
                         }
-                    }
-                }
-            }
+                    } else {
+                        // Search results mode
+                        val filteredHeirs = allHeirs.filter { heir ->
+                            heir.nameEn.contains(searchQuery, ignoreCase = true) ||
+                                    heir.nameBn.contains(searchQuery, ignoreCase = true)
+                        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                        if (filteredHeirs.isNotEmpty()) {
+                            filteredHeirs.forEach { heir ->
+                                val count = selectedHeirCounts[heir.id] ?: 0
+                                val serialNoStr = when (heir.id) {
+                                    "son" -> null
+                                    "grandson" -> "২"
+                                    "great_grandson" -> "৩"
+                                    "widow" -> "৪"
+                                    "predeceased_son_widow" -> null
+                                    "predeceased_grandson_widow" -> null
+                                    "unmarried_daughter" -> null
+                                    "daughter_with_son" -> null
+                                    "daughters_son" -> "৭"
+                                    "father" -> "৮"
+                                    "mother" -> "৯"
+                                    "brother" -> "১০"
+                                    "brothers_son" -> "১১"
+                                    "sisters_son" -> "১৩"
+                                    "paternal_grandfather" -> "১৪"
+                                    "paternal_grandmother" -> "১৫"
+                                    else -> {
+                                        val pVal = heir.priority.toIntOrNull() ?: 1
+                                        val sVal = pVal + 1
+                                        val bengaliDigits = mapOf(
+                                            '0' to '০', '1' to '১', '2' to '২', '3' to '৩', '4' to '৪',
+                                            '5' to '৫', '6' to '৬', '7' to '৭', '8' to '৮', '9' to '৯'
+                                        )
+                                        sVal.toString().map { char -> bengaliDigits[char] ?: char }.joinToString("")
+                                    }
+                                }
 
-            // 4. Calculate Button
-            val isEnabled = selectedHeirIds.isNotEmpty() && propertyInput.isNotEmpty()
-            Button(
-                onClick = {
-                    val propValue = propertyInput.toDoubleOrNull() ?: 100.0
-                    resultsList = calculateDayabhagaShares(propValue, selectedHeirCounts.toMap())
-                    showResults = true
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                enabled = isEnabled,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryOrange,
-                    disabledContainerColor = Color(0xFFB0BEC5)
-                ),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Calculate,
-                        contentDescription = "Calculate",
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "বণ্টন হিসাব করুন (Calculate)",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun HeirSelectionRow(
-    heir: Heir,
-    count: Int,
-    onAdd: () -> Unit,
-    primaryOrange: Color,
-    lightOrange: Color
-) {
-    var isHovered by remember { mutableStateOf(false) }
-    
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        when (event.type) {
-                            PointerEventType.Enter, PointerEventType.Move, PointerEventType.Press -> {
-                                isHovered = true
+                                HeirCounterRow(
+                                    heir = heir,
+                                    count = count,
+                                    onIncrement = {
+                                        if (heir.id !in selectedHeirIds) selectedHeirIds.add(heir.id)
+                                        selectedHeirCounts[heir.id] = count + 1
+                                    },
+                                    onDecrement = {
+                                        if (count > 1) {
+                                            selectedHeirCounts[heir.id] = count - 1
+                                        } else {
+                                            selectedHeirCounts.remove(heir.id)
+                                            selectedHeirIds.remove(heir.id)
+                                        }
+                                    },
+                                    primaryOrange = primaryOrange,
+                                    lightOrange = lightOrange,
+                                    serialNo = serialNoStr
+                                )
                             }
-                            PointerEventType.Exit, PointerEventType.Release -> {
-                                isHovered = false
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "কোনো উত্তরাধিকারী পাওয়া যায়নি।",
+                                    fontSize = 13.sp,
+                                    color = Color.Gray
+                                )
                             }
                         }
                     }
                 }
             }
-            .clickable { onAdd() },
-        colors = CardDefaults.cardColors(
-            containerColor = if (isHovered) lightOrange else Color.White
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (isHovered) primaryOrange else Color(0xFFEEEEEE)
-        ),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${heir.priority}. ${heir.nameBn}",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.Black
-                    )
-                    if (count > 0) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            color = primaryOrange.copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(10.dp)
+
+            // CARD 2: ২. সম্পদের বিবরণ (Asset Details)
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = darkGreenCard),
+                border = BorderStroke(1.dp, darkGreenBorder),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Header Row with Circular Badge
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                            .size(28.dp)
+                                            .background(primaryOrange, CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "$count বার যুক্ত",
-                                fontSize = 10.sp,
+                                text = "২",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "সম্পদের বিবরণ (Asset Details)",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textWhite
+                        )
+                    }
+
+                    Text(
+                        text = "যেকোনো একটি বা একাধিক সম্পত্তিতে এন্ট্রি দিন:",
+                        fontSize = 12.sp,
+                        color = textSecondarySage
+                    )
+
+                    // 1. Taka Field
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "নগদ টাকা (Cash Taka)",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textSecondarySage
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        OutlinedTextField(
+                            value = takaInput,
+                            onValueChange = { takaInput = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                Text(
+                                    text = "যেমন: ৫০০০০",
+                                    color = textSecondarySage.copy(alpha = 0.5f),
+                                    fontSize = 14.sp
+                                )
+                            },
+                            textStyle = TextStyle(
+                                color = textWhite,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Payments,
+                                    contentDescription = "Taka",
+                                    tint = primaryOrange,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            trailingIcon = {
+                                Text(
+                                    text = "টাকা (BDT)  ",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = primaryOrange
+                                )
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = textWhite,
+                                unfocusedTextColor = textWhite,
+                                focusedBorderColor = primaryOrange,
+                                unfocusedBorderColor = darkGreenBorder,
+                                focusedContainerColor = Color(0xFF071C12),
+                                unfocusedContainerColor = Color(0xFF071C12)
+                            ),
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                    }
+
+                    // 2. Gold Field
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "স্বর্ণ (Gold in Bhori)",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textSecondarySage
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        OutlinedTextField(
+                            value = goldInput,
+                            onValueChange = { goldInput = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                Text(
+                                    text = "যেমন: ১০",
+                                    color = textSecondarySage.copy(alpha = 0.5f),
+                                    fontSize = 14.sp
+                                )
+                            },
+                            textStyle = TextStyle(
+                                color = textWhite,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.WorkspacePremium,
+                                    contentDescription = "Gold",
+                                    tint = primaryOrange,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            trailingIcon = {
+                                Text(
+                                    text = "ভরি (Bhori)  ",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = primaryOrange
+                                )
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = textWhite,
+                                unfocusedTextColor = textWhite,
+                                focusedBorderColor = primaryOrange,
+                                unfocusedBorderColor = darkGreenBorder,
+                                focusedContainerColor = Color(0xFF071C12),
+                                unfocusedContainerColor = Color(0xFF071C12)
+                            ),
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                    }
+
+                    // 3. Land Field
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = "স্থাবর জমি (Land in Shatak)",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = textSecondarySage
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        OutlinedTextField(
+                            value = landInput,
+                            onValueChange = { landInput = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                Text(
+                                    text = "যেমন: ২৫",
+                                    color = textSecondarySage.copy(alpha = 0.5f),
+                                    fontSize = 14.sp
+                                )
+                            },
+                            textStyle = TextStyle(
+                                color = textWhite,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Landscape,
+                                    contentDescription = "Land",
+                                    tint = primaryOrange,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            trailingIcon = {
+                                Text(
+                                    text = "শতক (Shatak)  ",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = primaryOrange
+                                )
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = textWhite,
+                                unfocusedTextColor = textWhite,
+                                focusedBorderColor = primaryOrange,
+                                unfocusedBorderColor = darkGreenBorder,
+                                focusedContainerColor = Color(0xFF071C12),
+                                unfocusedContainerColor = Color(0xFF071C12)
+                            ),
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                    }
+
+                    val isEnabled = selectedHeirIds.isNotEmpty() && (takaInput.isNotEmpty() || goldInput.isNotEmpty() || landInput.isNotEmpty())
+                    Button(
+                        onClick = {
+                            val takaVal = takaInput.toDoubleOrNull() ?: 0.0
+                            val goldVal = goldInput.toDoubleOrNull() ?: 0.0
+                            val landVal = landInput.toDoubleOrNull() ?: 0.0
+
+                            takaResults = calculateDayabhagaShares(takaVal, selectedHeirCounts.toMap(), predeceasedSons.toList())
+                            goldResults = calculateDayabhagaShares(goldVal, selectedHeirCounts.toMap(), predeceasedSons.toList())
+                            landResults = calculateDayabhagaShares(landVal, selectedHeirCounts.toMap(), predeceasedSons.toList())
+
+                            resultsList = calculateDayabhagaShares(
+                                if (takaVal > 0.0) takaVal else if (goldVal > 0.0) goldVal else if (landVal > 0.0) landVal else 100.0,
+                                selectedHeirCounts.toMap(),
+                                predeceasedSons.toList()
+                            )
+                            showResults = true
+                        },
+                        modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(50.dp),
+                        enabled = isEnabled,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = primaryOrange,
+                            disabledContainerColor = Color(0xFF162D21)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Calculate,
+                                contentDescription = "Calculate",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "বণ্টন হিসাব করুন (Calculate)",
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = primaryOrange,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                color = Color.White
                             )
                         }
                     }
                 }
-                Text(
-                    text = heir.nameEn,
-                    fontSize = 11.sp,
-                    color = Color.Gray
-                )
-            }
-            
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
-            ) {
-                AnimatedVisibility(visible = isHovered) {
-                    Surface(
-                        color = primaryOrange,
-                        shape = RoundedCornerShape(6.dp),
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Text(
-                            text = "Add",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-                
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(primaryOrange, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add heir",
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
             }
         }
     }
 }
 
 @Composable
-fun SelectedHeirCard(
+fun CategoryHeader(title: String, primaryOrange: Color) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 8.dp)
+    ) {
+        Text(
+            text = title,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = primaryOrange
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        HorizontalDivider(
+            color = primaryOrange,
+            thickness = 2.dp,
+            modifier = Modifier.width(100.dp)
+        )
+    }
+}
+
+@Composable
+fun HeirCounterRow(
     heir: Heir,
     count: Int,
     onIncrement: () -> Unit,
     onDecrement: () -> Unit,
-    onDelete: () -> Unit,
-    primaryOrange: Color
+    primaryOrange: Color,
+    lightOrange: Color,
+    enabled: Boolean = true,
+    disabledMessage: String? = null,
+    serialNo: String? = null
 ) {
+    val darkGreenCard = Color(0xFF0C2419)
+    val darkGreenBorder = Color(0xFF1B3D2B)
+    val textSecondarySage = Color(0xFFA1B3A9)
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFDE7)),
-        border = BorderStroke(1.dp, Color(0xFFFFF59D)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (!enabled) Color(0xFF061810) else if (count > 0) Color(0xFF143B28) else darkGreenCard
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (!enabled) Color(0xFF122C1F) else if (count > 0) primaryOrange else darkGreenBorder
+        ),
         shape = RoundedCornerShape(8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = heir.nameBn,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Surface(
-                        color = primaryOrange,
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text(
-                            text = "x $count",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
+                val displayNameBn = if (serialNo != null) "$serialNo. ${heir.nameBn}" else heir.nameBn
                 Text(
-                    text = heir.nameEn,
+                    text = displayNameBn,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (!enabled) Color.Gray else Color.White
+                )
+                Text(
+                    text = if (!enabled && disabledMessage != null) disabledMessage else heir.nameEn,
                     fontSize = 11.sp,
-                    color = Color.DarkGray
+                    color = if (!enabled) Color(0xFF758A7E) else textSecondarySage
                 )
             }
-            
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                IconButton(
-                    onClick = onDecrement,
+
+            if (enabled) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .size(28.dp)
-                        .background(Color.White, CircleShape)
-                        .border(1.dp, Color(0xFFE0E0E0), CircleShape)
+                        .border(1.dp, darkGreenBorder, RoundedCornerShape(24.dp))
+                        .background(Color(0xFF04140D), RoundedCornerShape(24.dp))
+                        .padding(horizontal = 2.dp, vertical = 2.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Remove,
-                        contentDescription = "Decrease count",
-                        tint = if (count > 1) Color.Black else Color.Gray,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-                
-                Box(
-                    modifier = Modifier.width(20.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+                    IconButton(
+                        onClick = onDecrement,
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Remove,
+                            contentDescription = "Decrease",
+                            tint = if (count > 0) primaryOrange else Color.Gray,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                     Text(
                         text = "$count",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = if (count > 0) Color.White else textSecondarySage,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        textAlign = TextAlign.Center
                     )
+                    IconButton(
+                        onClick = onIncrement,
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Increase",
+                            tint = primaryOrange,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
-                
-                IconButton(
-                    onClick = onIncrement,
-                    modifier = Modifier
-                        .size(28.dp)
-                        .background(Color.White, CircleShape)
-                        .border(1.dp, Color(0xFFE0E0E0), CircleShape)
+            } else {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Increase count",
-                        tint = Color.Black,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.width(2.dp))
-                
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(Color(0xFFFFEBEE), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete heir",
-                        tint = Color(0xFFD32F2F),
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Disabled",
+                        tint = Color.Gray,
                         modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = "লকড",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

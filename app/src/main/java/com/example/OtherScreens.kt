@@ -1,6 +1,7 @@
 package com.example
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +47,62 @@ import androidx.compose.ui.res.painterResource
 
 @Composable
 fun SapindasScreen() {
+    val sapindasList = listOf(
+        "১। পুত্র",
+        "২। পুত্রের পুত্র",
+        "৩। পুত্রের পুত্রের পুত্র",
+        "৪। স্ত্রী, পুত্রের স্ত্রী, পুত্রের পুত্রের স্ত্রী, পুত্রের পুত্রের পুত্রের স্ত্রী।",
+        "৫। কন্যা",
+        "৬। কন্যার পুত্র",
+        "৭। পিতা",
+        "৮। মাতা",
+        "৯। ভাই, সহোদর ভাই না থাকলে বৈমাত্রেয় ভাই।",
+        "১০। ভাই এর পুত্র, সহোদর ভাই না থাকলে বৈমাত্রেয় ভাই এর পুত্র",
+        "১১। ভাই এর পুত্রের পুত্র, সহোদর ভাই না থাকলে বৈমাত্রেয় ভাই এর পুত্রের পুত্র।",
+        "১২। বোনের পুত্র",
+        "১৩। পিতার পিতা",
+        "১৪। পিতার মাতা",
+        "১৫। পিতার ভাই",
+        "১৬। পিতার ভাইয়ের পুত্র",
+        "১৭। পিতার ভাইয়ের পুত্রের পুত্র",
+        "১৮। পিতার বোনের পুত্র",
+        "১৯। পিতার পিতার পিতা",
+        "২০। পিতার পিতার মাতা",
+        "২১। পিতার পিতার ভাই",
+        "২২। পিতার পিতার ভাইয়ের পুত্র",
+        "২৩।  পিতার পিতার ভাইয়ের পুত্রের পুত্র",
+        "২৪। পিতার পিসির পুত্র",
+        "২৫। পুত্রের কন্যার পুত্র",
+        "২৬। পুত্রের পুত্রের কন্যার পুত্র",
+        "২৭। ভাইয়ের কন্যার পুত্র",
+        "২৮। ভাইয়ের পুত্রের কন্যার পুত্র",
+        "২৯। খুড়ার কন্যার পুত্র",
+        "৩০। খুড়ার পুত্রের কন্যার পুত্র",
+        "৩১। পিতার খুড়ার কন্যার পুত্র",
+        "৩২। পিতার খুড়ার পুত্রের কন্যার পুত্র",
+        "৩৩। মাতার পিতা (নানা)",
+        "৩৪। মাতার ভাই (মামা)",
+        "৩৫। মাতার ভাইয়ের পুত্র (মামার পুত্র)",
+        "৩৬। মাতার ভাইয়ের পুত্রের পুত্র (মামার পুত্রের পুত্র)",
+        "৩৭। মাতার বোনের পুত্র (মাসির পুত্র)",
+        "৩৮। মাতার পিতার পিতা",
+        "৩৯। মাতার পিতার ভাই",
+        "৪০। মাতার পিতার ভাইয়ের পুত্র",
+        "৪১। মাতার পিতার ভাইয়ের পুত্রের পুত্র",
+        "৪২।  মাতার পিতার বোনের পুত্রের পুত্র",
+        "৪৩। মাতার পিতার পিতার পিতা",
+        "৪৪। মাতার পিতার পিতার ভাই।",
+        "৪৫। মাতার পিতার পিতার ভাইয়ের পুত্র",
+        "৪৬। মাতার পিতার পিতার ভাইয়ের পুত্রের পুত্র",
+        "৪৭। মাতার পিতার পিতার বোনের পুত্র",
+        "৪৮। মাতার ভাইয়ের কন্যার পুত্র",
+        "৪৯। মাতার ভাইয়ের পুত্রের কন্যার পুত্র",
+        "৫০। মাতার পিতার ভাইয়ের কন্যার পুত্র",
+        "৫১। মাতার পিতার ভাইয়ের পুত্রের কন্যার পুত্র",
+        "৫২।  মাতার পিতার পিতার ভাইয়ের কন্যার পুত্র",
+        "৫৩।  মাতার পিতার পিতার ভাইয়ের পুত্রের কন্যার পুত্র,"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -54,52 +111,56 @@ fun SapindasScreen() {
     ) {
         Card(
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
+            border = BorderStroke(1.dp, Color(0xFFE65100).copy(alpha = 0.3f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "৫৩ জন সপিণ্ড (53 Sapindas in Dayabhaga)",
-                    fontSize = 20.sp,
+                    text = "হিন্দু আইনে মোট ৫৩ জন সপিন্ডগণের তালিকা ক্রমানুসারে দেওয়া হলঃ",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "দায়ভাগ আইন অনুসারে সপিণ্ড হচ্ছেন তারা যারা পিণ্ড দান করতে পারেন অথবা পিণ্ড গ্রহণে অংশ নেন। এদের উত্তরাধিকারের অগ্রাধিকার ক্রম নিচে ক্রমানুসারে দেওয়া হলো:",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = Color(0xFFE65100),
+                    lineHeight = 26.sp
                 )
             }
         }
 
-        allHeirs.forEach { heir ->
+        sapindasList.forEach { item ->
+            val parts = item.split("।", limit = 2)
+            val serial = parts.getOrNull(0)?.trim() ?: ""
+            val text = parts.getOrNull(1)?.trim() ?: ""
+
             Card(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                border = BorderStroke(1.dp, Color(0xFFEEEEEE))
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(12.dp)
-                            .background(Color(0xFFE65100), RoundedCornerShape(6.dp))
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
+                            .size(36.dp)
+                            .background(Color(0xFFE65100).copy(alpha = 0.1f), RoundedCornerShape(18.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            text = "${heir.priority}. ${heir.nameBn}",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "${heir.nameEn} (শ্রেণী: ${heir.category})",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = serial,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFE65100)
                         )
                     }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = text,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
