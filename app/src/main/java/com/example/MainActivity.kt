@@ -27,6 +27,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Rect
+import android.view.PixelCopy
+import android.os.Handler
+import android.os.Looper
+import android.content.ContentValues
+import android.provider.MediaStore
+import android.os.Environment
+import android.content.Intent
+import android.net.Uri
+import android.view.View
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -85,8 +97,8 @@ class MainActivity : ComponentActivity() {
     private var webViewInstance: WebView? = null
     private var fcmTokenState = mutableStateOf("")
 
-    // Set to true in debug mode to test with official AdMob test ads, and false in release mode for Play Store release.
-    private val USE_TEST_ADS = BuildConfig.DEBUG
+    // Set to true in debug mode or if configured via developer options. Defaults to false for Play Store release.
+    private val USE_TEST_ADS: Boolean = false
 
     // AdMob Live Unit IDs
     private val LIVE_BANNER_ID = "ca-app-pub-4421171886586590/6553728229"
@@ -133,7 +145,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 1. Initialize AdMob Mobile Ads SDK
+        // 1. Initialize AdMob Mobile Ads SDK with test device configuration
+        getSharedPreferences("ad_prefs", Context.MODE_PRIVATE).edit().putBoolean("use_test_ads", false).apply()
+        val savedTestAds = false
+        val savedDeviceId = getSharedPreferences("ad_prefs", Context.MODE_PRIVATE).getString("test_device_id", "") ?: ""
+        
+        val testDeviceIds = mutableListOf<String>()
+        testDeviceIds.add(AdRequest.DEVICE_ID_EMULATOR)
+        if (savedTestAds && savedDeviceId.isNotBlank()) {
+            testDeviceIds.add(savedDeviceId.trim())
+        }
+        val requestConfiguration = RequestConfiguration.Builder()
+            .setTestDeviceIds(testDeviceIds)
+            .build()
+        MobileAds.setRequestConfiguration(requestConfiguration)
+
         MobileAds.initialize(this) { status ->
             Log.d(TAG, "AdMob Initialized: $status")
             // Load interstitial and native ads after initialization
@@ -150,6 +176,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApplicationTheme {
                 var showSplash by remember { mutableStateOf(true) }
+                var useTestAdsState by remember {
+                    mutableStateOf(getSharedPreferences("ad_prefs", Context.MODE_PRIVATE).getBoolean("use_test_ads", false))
+                }
+                var testDeviceIdState by remember {
+                    mutableStateOf(getSharedPreferences("ad_prefs", Context.MODE_PRIVATE).getString("test_device_id", "") ?: "")
+                }
 
                 LaunchedEffect(Unit) {
                     delay(3000)
@@ -165,8 +197,27 @@ class MainActivity : ComponentActivity() {
                         nativeAd = nativeAdState.value,
                         onRefreshNativeAd = { loadNativeAd() },
                         onShowInterstitial = { showInterstitial() },
+                        onShareApp = { shareApp() },
                         onWebViewInit = { webView -> webViewInstance = webView },
-                        bannerAdId = BANNER_ID
+                        bannerAdId = if (useTestAdsState) TEST_BANNER_ID else LIVE_BANNER_ID,
+                        useTestAds = useTestAdsState,
+                        onToggleTestAds = { newValue ->
+                            useTestAdsState = newValue
+                            getSharedPreferences("ad_prefs", Context.MODE_PRIVATE)
+                                .edit()
+                                .putBoolean("use_test_ads", newValue)
+                                .apply()
+                            updateAdConfiguration(newValue, testDeviceIdState)
+                        },
+                        testDeviceId = testDeviceIdState,
+                        onSaveTestDeviceId = { newId ->
+                            testDeviceIdState = newId
+                            getSharedPreferences("ad_prefs", Context.MODE_PRIVATE)
+                                .edit()
+                                .putString("test_device_id", newId)
+                                .apply()
+                            updateAdConfiguration(useTestAdsState, newId)
+                        }
                     )
                 }
             }
@@ -270,6 +321,122 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    fun shareApp() {
+        runOnUiThread {
+            try {
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "হিন্দু উত্তরাধিকার (দায়ভাগ)")
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        "হিন্দু উত্তরাধিকার (দায়ভাগ) বণ্টন ক্যালকুলেটর অ্যাপটি ডাউনলোড করুন:\nhttps://play.google.com/store/apps/details?id=com.hinducalculator.miazi"
+                    )
+                }
+                startActivity(Intent.createChooser(shareIntent, "অ্যাপটি শেয়ার করুন (Share App)"))
+            } catch (e: Exception) {
+                Toast.makeText(this, "শেয়ার করা সম্ভব হয়নি: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun takeScreenshotAndShare() {
+        runOnUiThread {
+            val view = window.decorView
+            val width = view.width
+            val height = view.height
+            if (width <= 0 || height <= 0) {
+                Toast.makeText(this, "স্ক্রিনশট নেওয়া সম্ভব নয়", Toast.LENGTH_SHORT).show()
+                return@runOnUiThread
+            }
+
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val location = IntArray(2)
+                view.getLocationInWindow(location)
+                try {
+                    PixelCopy.request(
+                        window,
+                        Rect(
+                            location[0],
+                            location[1],
+                            location[0] + width,
+                            location[1] + height
+                        ),
+                        bitmap,
+                        { copyResult ->
+                            if (copyResult == PixelCopy.SUCCESS) {
+                                saveAndShareBitmap(bitmap)
+                            } else {
+                                takeLegacyScreenshot(view)
+                            }
+                        },
+                        Handler(Looper.getMainLooper())
+                    )
+                } catch (e: Exception) {
+                    takeLegacyScreenshot(view)
+                }
+            } else {
+                takeLegacyScreenshot(view)
+            }
+        }
+    }
+
+    private fun takeLegacyScreenshot(view: View) {
+        try {
+            val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            view.draw(canvas)
+            saveAndShareBitmap(bitmap)
+        } catch (e: Exception) {
+            Toast.makeText(this, "স্ক্রিনশট নেওয়া ব্যর্থ হয়েছে: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun saveAndShareBitmap(bitmap: Bitmap) {
+        val filename = "Hindu_Calculator_${System.currentTimeMillis()}.png"
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/HinduCalculator")
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+        }
+
+        val resolver = contentResolver
+        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+        if (uri != null) {
+            try {
+                resolver.openOutputStream(uri).use { outputStream ->
+                    if (outputStream != null) {
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                    }
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    contentValues.clear()
+                    contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                    resolver.update(uri, contentValues, null, null)
+                }
+
+                Toast.makeText(this, "স্ক্রিনশট গ্যালারিতে সেভ করা হয়েছে (Saved to Gallery!)", Toast.LENGTH_LONG).show()
+
+                // Share intent
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(shareIntent, "স্ক্রিনশট শেয়ার করুন (Share Screenshot)"))
+            } catch (e: Exception) {
+                Toast.makeText(this, "সেভ/শেয়ার করতে সমস্যা হয়েছে: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "গ্যালারিতে সেভ করা যায়নি", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // Helper to load Native Ad
     private fun loadNativeAd() {
         val adLoader = AdLoader.Builder(this, NATIVE_ID)
@@ -294,6 +461,22 @@ class MainActivity : ComponentActivity() {
             .build()
 
         adLoader.loadAd(AdRequest.Builder().build())
+    }
+
+    private fun updateAdConfiguration(useTestAds: Boolean, testDeviceId: String) {
+        val testDeviceIds = mutableListOf<String>()
+        testDeviceIds.add(AdRequest.DEVICE_ID_EMULATOR)
+        if (useTestAds && testDeviceId.isNotBlank()) {
+            testDeviceIds.add(testDeviceId.trim())
+        }
+        val requestConfiguration = RequestConfiguration.Builder()
+            .setTestDeviceIds(testDeviceIds)
+            .build()
+        MobileAds.setRequestConfiguration(requestConfiguration)
+        
+        // Force reload ads
+        loadInterstitialAd()
+        loadNativeAd()
     }
 
     override fun onDestroy() {
@@ -348,8 +531,13 @@ fun MainScreen(
     nativeAd: NativeAd?,
     onRefreshNativeAd: () -> Unit,
     onShowInterstitial: () -> Unit,
+    onShareApp: () -> Unit,
     onWebViewInit: (WebView) -> Unit,
-    bannerAdId: String
+    bannerAdId: String,
+    useTestAds: Boolean,
+    onToggleTestAds: (Boolean) -> Unit,
+    testDeviceId: String,
+    onSaveTestDeviceId: (String) -> Unit
 ) {
     val context = LocalContext.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -553,25 +741,18 @@ fun MainScreen(
                             modifier = Modifier.weight(1f)
                         )
 
-                        if (fcmToken.isNotEmpty() && fcmToken != "FCM_NOT_INITIALIZED" && fcmToken != "FCM_NOT_CONFIGURED") {
-                            IconButton(
-                                onClick = {
-                                    try {
-                                        clipboardManager.setText(AnnotatedString(fcmToken))
-                                        Toast.makeText(context, "FCM Token কপি করা হয়েছে (FCM Token copied!)", Toast.LENGTH_SHORT).show()
-                                    } catch (e: Exception) {
-                                        Toast.makeText(context, "কপি করতে ব্যর্থ হয়েছে (Failed to copy)", Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                modifier = Modifier.size(48.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copy FCM Token",
-                                    tint = ComposeColor.White,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
+                        IconButton(
+                            onClick = {
+                                onShareApp()
+                            },
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Share Play Store Link",
+                                tint = ComposeColor.White,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                     }
                 }
@@ -615,7 +796,7 @@ fun MainScreen(
                         .weight(1f)
                 ) {
                     when (currentScreen) {
-                        DrawerItem.CALCULATOR -> CalculatorScreen()
+                        DrawerItem.CALCULATOR -> CalculatorScreen(onShowInterstitial = onShowInterstitial)
                         DrawerItem.SAPINDAS -> SapindasScreen()
                         DrawerItem.USAGE -> UsageGuidelinesScreen()
                         DrawerItem.PRINCIPLES -> PrinciplesScreen()
@@ -625,7 +806,12 @@ fun MainScreen(
                         DrawerItem.CREDITS -> CreditsScreen()
                         DrawerItem.POLICY -> UserDataPolicyScreen()
                         DrawerItem.DISCLAIMER -> DisclaimerScreen()
-                        DrawerItem.DEVELOPER -> DeveloperScreen()
+                        DrawerItem.DEVELOPER -> DeveloperScreen(
+                            useTestAds = useTestAds,
+                            onToggleTestAds = onToggleTestAds,
+                            testDeviceId = testDeviceId,
+                            onSaveTestDeviceId = onSaveTestDeviceId
+                        )
                     }
                 }
 

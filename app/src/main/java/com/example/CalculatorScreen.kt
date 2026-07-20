@@ -42,61 +42,61 @@ fun getSapindaSerialNumberBn(heirId: String): String? {
         "widow" -> "৪"
         "unmarried_daughter" -> null // "কন্যার সাথে সিরিয়াল আসবে, অবিবাহিত কন্যা বা পুত্রবতী কন্যার সাথে সিরিয়াল থাকবেনা।"
         "daughter_with_son" -> null   // No serial number for these sub-types
-        "daughters_son" -> "৭"
-        "father" -> "৮"
-        "mother" -> "৯"
-        "brother" -> "১০"
-        "brothers_son" -> "১১"
-        "brothers_son_son" -> "১২"
-        "sisters_son" -> "১৩"
-        "paternal_grandfather" -> "১৪"
-        "paternal_grandmother" -> "১৫"
-        "paternal_uncle" -> "১৬"
-        "paternal_uncles_son" -> "১৭"
-        "paternal_uncles_son_son" -> "১৮"
-        "fathers_sisters_son" -> "১৯"
-        "paternal_great_grandfather" -> "২০"
-        "paternal_great_grandmother" -> "২১"
-        "paternal_great_uncle" -> "২২"
-        "paternal_great_uncles_son" -> "২৩"
-        "paternal_great_uncles_son_son" -> "২৪"
-        "fathers_fathers_sisters_son" -> "২৫"
-        "sons_daughters_son" -> "২৬"
-        "sons_sons_daughters_son" -> "২৭"
-        "brothers_daughter_son" -> "২৮"
-        "brothers_sons_daughters_son" -> "২৯"
-        "paternal_uncles_daughter_son" -> "৩০"
-        "paternal_uncles_sons_daughters_son" -> "৩১"
-        "paternal_great_uncles_daughter_son" -> "৩২"
-        "paternal_great_uncles_sons_daughters_son" -> "৩৩"
-        "maternal_grandfather" -> "৩৪"
-        "maternal_uncle" -> "৩৫"
-        "maternal_uncles_son" -> "৩৬"
-        "maternal_uncles_son_son" -> "৩৭"
-        "mothers_sisters_son" -> "৩৮"
-        "maternal_great_grandfather" -> "৩৯"
-        "maternal_great_uncle" -> "৪০"
-        "maternal_great_uncles_son" -> "৪১"
-        "mothers_fathers_sisters_son" -> "৪২"
-        "mothers_fathers_sisters_son_son" -> "৪৩"
-        "maternal_great_great_grandfather" -> "৪৪"
-        "maternal_great_great_uncle" -> "৪৫"
-        "maternal_great_great_uncles_son" -> "৪৬"
-        "maternal_great_great_uncles_son_son" -> "৪৭"
-        "mothers_fathers_fathers_sisters_son" -> "৪৮"
-        "maternal_uncles_daughter_son" -> "৪৯"
-        "maternal_uncles_sons_daughters_son" -> "৫০"
-        "maternal_great_uncles_daughter_son" -> "৫১"
-        "maternal_great_uncles_sons_daughters_son" -> "৫২"
-        "maternal_great_great_uncles_daughter_son" -> "৫৩"
-        "maternal_great_great_uncles_sons_daughters_son" -> "৫৪"
+        "daughters_son" -> "৬"
+        "father" -> "৭"
+        "mother" -> "৮"
+        "brother" -> "৯"
+        "brothers_son" -> "১০"
+        "brothers_son_son" -> "১১"
+        "sisters_son" -> "১২"
+        "paternal_grandfather" -> "১৩"
+        "paternal_grandmother" -> "১৪"
+        "paternal_uncle" -> "১৫"
+        "paternal_uncles_son" -> "১৬"
+        "paternal_uncles_son_son" -> "১৭"
+        "fathers_sisters_son" -> "১৮"
+        "paternal_great_grandfather" -> "১৯"
+        "paternal_great_grandmother" -> "২০"
+        "paternal_great_uncle" -> "২১"
+        "paternal_great_uncles_son" -> "২২"
+        "paternal_great_uncles_son_son" -> "২৩"
+        "fathers_fathers_sisters_son" -> "২৪"
+        "sons_daughters_son" -> "২৫"
+        "sons_sons_daughters_son" -> "২৬"
+        "brothers_daughter_son" -> "২৭"
+        "brothers_sons_daughters_son" -> "২৮"
+        "paternal_uncles_daughter_son" -> "২৯"
+        "paternal_uncles_sons_daughters_son" -> "৩০"
+        "paternal_great_uncles_daughter_son" -> "৩১"
+        "paternal_great_uncles_sons_daughters_son" -> "৩২"
+        "maternal_grandfather" -> "৩৩"
+        "maternal_uncle" -> "৩৪"
+        "maternal_uncles_son" -> "৩৫"
+        "maternal_uncles_son_son" -> "৩৬"
+        "mothers_sisters_son" -> "৩৭"
+        "maternal_great_grandfather" -> "৩৮"
+        "maternal_great_uncle" -> "৩৯"
+        "maternal_great_uncles_son" -> "৪০"
+        "mothers_fathers_sisters_son" -> "৪১"
+        "mothers_fathers_sisters_son_son" -> "৪২"
+        "maternal_great_great_grandfather" -> "৪৩"
+        "maternal_great_great_uncle" -> "৪৪"
+        "maternal_great_great_uncles_son" -> "৪৫"
+        "maternal_great_great_uncles_son_son" -> "৪৬"
+        "mothers_fathers_fathers_sisters_son" -> "৪৭"
+        "maternal_uncles_daughter_son" -> "৪৮"
+        "maternal_uncles_sons_daughters_son" -> "৪৯"
+        "maternal_great_uncles_daughter_son" -> "৫০"
+        "maternal_great_uncles_sons_daughters_son" -> "৫১"
+        "maternal_great_great_uncles_daughter_son" -> "৫২"
+        "maternal_great_great_uncles_sons_daughters_son" -> "৫৩"
         else -> null
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalculatorScreen() {
+fun CalculatorScreen(onShowInterstitial: () -> Unit = {}) {
     val context = LocalContext.current
     var takaInput by remember { mutableStateOf("") }
     var goldInput by remember { mutableStateOf("") }
@@ -694,7 +694,7 @@ fun CalculatorScreen() {
 
                     if (searchQuery.isEmpty()) {
                         // SECTION 1: পুত্র, অধস্তন বংশধর এবং স্ত্রী
-                        CategoryHeader(title = "১. পুত্র, অধস্তন বংশধর এবং স্ত্রী", primaryOrange = primaryOrange)
+                        CategoryHeader(title = "পুত্র, অধস্তন বংশধর এবং স্ত্রী", primaryOrange = primaryOrange)
 
                         // 1. পুত্র (Son) [Collapsible nested wrapper at the very top]
                         val sonHeir = allHeirs.first { it.id == "son" }
@@ -734,7 +734,7 @@ fun CalculatorScreen() {
                                     ) {
                                         Column {
                                             Text(
-                                                text = "১. পুত্র",
+                                                text = "পুত্র",
                                                 fontSize = 14.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = textWhite
@@ -1088,7 +1088,7 @@ fun CalculatorScreen() {
                         )
 
                         // SECTION 2: কন্যা [Serialized '৫' for Section 2 title]
-                        CategoryHeader(title = "৫. কন্যা", primaryOrange = primaryOrange)
+                        CategoryHeader(title = "কন্যা", primaryOrange = primaryOrange)
 
                         // 1. অবিবাহিতা কন্যা
                         val udHeir = allHeirs.first { it.id == "unmarried_daughter" }
@@ -1156,7 +1156,7 @@ fun CalculatorScreen() {
                             },
                             primaryOrange = primaryOrange,
                             lightOrange = lightOrange,
-                            serialNo = "৭"
+                            serialNo = "৬"
                         )
 
                         // SECTION 3: পিতা-মাতা এবং উর্ধ্বতন
@@ -1182,7 +1182,7 @@ fun CalculatorScreen() {
                             },
                             primaryOrange = primaryOrange,
                             lightOrange = lightOrange,
-                            serialNo = "৮"
+                            serialNo = "৭"
                         )
 
                         // 2. মাতা (জীবনস্বত্ব)
@@ -1205,7 +1205,7 @@ fun CalculatorScreen() {
                             },
                             primaryOrange = primaryOrange,
                             lightOrange = lightOrange,
-                            serialNo = "৯"
+                            serialNo = "৮"
                         )
 
                         // 3. পিতামহ (দাদা)
@@ -1228,7 +1228,7 @@ fun CalculatorScreen() {
                             },
                             primaryOrange = primaryOrange,
                             lightOrange = lightOrange,
-                            serialNo = "১৪"
+                            serialNo = "১৩"
                         )
 
                         // 4. পিতামহী (দাদী)
@@ -1251,7 +1251,7 @@ fun CalculatorScreen() {
                             },
                             primaryOrange = primaryOrange,
                             lightOrange = lightOrange,
-                            serialNo = "১৫"
+                            serialNo = "১৪"
                         )
 
                         // SECTION 4: ভাই-বোন
@@ -1300,7 +1300,7 @@ fun CalculatorScreen() {
                             },
                             primaryOrange = primaryOrange,
                             lightOrange = lightOrange,
-                            serialNo = "১১"
+                            serialNo = "১০"
                         )
 
                         // 3. সহোদর বোনের পুত্র
@@ -1323,7 +1323,7 @@ fun CalculatorScreen() {
                             },
                             primaryOrange = primaryOrange,
                             lightOrange = lightOrange,
-                            serialNo = "১৩"
+                            serialNo = "১২"
                         )
 
                         // SECTION 5: অন্যান্য সপিণ্ড উত্তরাধিকারীগণ (Other Heirs) - Collapsible
@@ -1384,7 +1384,7 @@ fun CalculatorScreen() {
                                 allHeirs.filter { it.id !in majorIds }.forEach { otherHeir ->
                                     val count = selectedHeirCounts[otherHeir.id] ?: 0
                                     val priorityVal = otherHeir.priority.toIntOrNull() ?: 1
-                                    val sVal = priorityVal + 1
+                                    val sVal = priorityVal
                                     val bengaliDigits = mapOf(
                                         '0' to '০', '1' to '১', '2' to '২', '3' to '৩', '4' to '৪',
                                         '5' to '৫', '6' to '৬', '7' to '৭', '8' to '৮', '9' to '৯'
@@ -1432,17 +1432,17 @@ fun CalculatorScreen() {
                                     "predeceased_grandson_widow" -> null
                                     "unmarried_daughter" -> null
                                     "daughter_with_son" -> null
-                                    "daughters_son" -> "৭"
-                                    "father" -> "৮"
-                                    "mother" -> "৯"
-                                    "brother" -> "১০"
-                                    "brothers_son" -> "১১"
-                                    "sisters_son" -> "১৩"
-                                    "paternal_grandfather" -> "১৪"
-                                    "paternal_grandmother" -> "১৫"
+                                    "daughters_son" -> "৬"
+                                    "father" -> "৭"
+                                    "mother" -> "৮"
+                                    "brother" -> "৯"
+                                    "brothers_son" -> "১০"
+                                    "sisters_son" -> "১২"
+                                    "paternal_grandfather" -> "১৩"
+                                    "paternal_grandmother" -> "১৪"
                                     else -> {
                                         val pVal = heir.priority.toIntOrNull() ?: 1
-                                        val sVal = pVal + 1
+                                        val sVal = pVal
                                         val bengaliDigits = mapOf(
                                             '0' to '০', '1' to '১', '2' to '২', '3' to '৩', '4' to '৪',
                                             '5' to '৫', '6' to '৬', '7' to '৭', '8' to '৮', '9' to '৯'
@@ -1715,6 +1715,7 @@ fun CalculatorScreen() {
                                 predeceasedSons.toList()
                             )
                             showResults = true
+                            onShowInterstitial()
                         },
                         modifier = Modifier
                                         .fillMaxWidth()
@@ -1810,7 +1811,7 @@ fun HeirCounterRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                val displayNameBn = if (serialNo != null) "$serialNo. ${heir.nameBn}" else heir.nameBn
+                val displayNameBn = heir.nameBn
                 Text(
                     text = displayNameBn,
                     fontSize = 14.sp,

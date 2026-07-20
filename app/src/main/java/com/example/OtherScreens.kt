@@ -651,7 +651,12 @@ fun DisclaimerScreen() {
 }
 
 @Composable
-fun DeveloperScreen() {
+fun DeveloperScreen(
+    useTestAds: Boolean,
+    onToggleTestAds: (Boolean) -> Unit,
+    testDeviceId: String,
+    onSaveTestDeviceId: (String) -> Unit
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
